@@ -180,6 +180,38 @@ nobody nominated (falls back to largest-remainder), all weights zero (falls
 back to an even split), and an absorber who ate nothing (skipped, so nobody is
 ever charged a negative amount).
 
+### Tips, and why they sit outside the bill
+
+A tip is a fourth charge next to discount, service and tax — a percentage of
+the food after discount, or a fixed amount.
+
+It is deliberately **not** part of `calculatedTotal`. The receipt cross-check on
+the Bill tab compares our maths against what the restaurant printed, and a tip
+is money they never printed. Folding it in would make every correctly-entered
+bill look like a mismatch. So `BillTotals` carries the printed bill
+(`calculatedTotalMinor`) and the tip (`tipsMinor`) separately, with
+`payableTotalMinor` as the sum.
+
+### Rounding each share up
+
+Optionally, every person's share is rounded **up** to a whole 1, 5 or 10
+currency units — so nobody is counting out coins at the table.
+
+Two things make this safe:
+
+- It is applied **after** each person's exact share is known, so the underlying
+  split stays fair and only the final handover is tidied.
+- **Every piastre collected goes to the tip.** Nobody is quietly overcharged;
+  the surplus lands somewhere it was always going to end up.
+
+A zero share stays zero — someone who ate nothing is not charged 5 EGP for the
+privilege. The step is stored in *major* units, so switching currency keeps it
+meaningful (5 means five of whatever this is: 500 piastres, or 5000 fils).
+
+This extends the exactness guarantee rather than replacing it. The invariant
+becomes: **what everyone hands over equals the bill plus the tip, exactly**, and
+the restaurant is never short-changed. Fuzzed over another 5,000 random bills.
+
 ### Order of the money
 
 1. Each person pays for what they claimed.
@@ -188,8 +220,33 @@ ever charged a negative amount).
    the summary, and the organizer can hand one to a person instead with the
    *Give to…* dropdown — for when someone simply forgot to tick their dessert.
 3. The discount is spread in proportion to each person's food.
-4. Service and tax are spread by the **Dividing tax & service** setting:
-   *By what you ate* (default) or *Equally*.
+4. Service, tax and the tip are spread by the **Dividing tax & service**
+   setting: *By what you ate* (default) or *Equally*.
+5. Each person's total is rounded up, if that is switched on, with the surplus
+   added to the tip.
+
+### Installing it as an app
+
+The app is a PWA: on a phone it can be installed to the home screen and then
+opens without browser chrome.
+
+- `public/manifest.webmanifest` — standalone display, icons generated from the
+  logo including a maskable variant. `start_url` and `scope` are relative, so
+  they work under the `/caro-calculator/` subpath without hard-coding it.
+- `public/sw.js` — a hand-written service worker, forty lines, no build plugin.
+  **Network-first for navigations**, so a deploy is picked up on the next visit
+  rather than pinning users to a stale `index.html`; **cache-first for hashed
+  assets**, which is safe because their filenames change every build. Firestore
+  traffic is left entirely alone — caching live bill data would serve people
+  stale claims.
+- `src/components/InstallButton.tsx` — appears only on touch devices, and only
+  when the app is not already installed. Chromium fires `beforeinstallprompt`,
+  which we capture and replay on tap; its very existence is the "not installed"
+  signal. iOS Safari has no such API and no programmatic install at all, so
+  there the button explains *Share → Add to Home Screen* rather than pretending.
+
+A side benefit of the service worker: the organizer's offline mode now really
+is offline. The app shell opens with no signal at all.
 
 ### Routing
 
@@ -244,6 +301,7 @@ readable when something breaks at 1am after a dinner.
 | `totals` | parsing (including Arabic-Indic digits and 3-decimal KWD), formatting, the Egyptian compound-VAT order, discounts, and the receipt-matching solver |
 | `participants` | headcount vs entries, both split bases, and the localStorage schema migrations v1 → v2 → v3 including corrupt input |
 | `shares` | weighted allocation, shared and unclaimed items, over-claim capping, proportional vs equal tax, and **5,000 randomized bills asserting the shares always sum to the bill total** |
+| `tips` | tip bases, the tip staying out of the receipt check, round-up arithmetic per currency, and **5,000 more randomized bills asserting handed-over === bill + tip** |
 
 The deploy workflow runs these before building, so a change that would get
 someone's share wrong cannot reach the live site.
@@ -270,7 +328,8 @@ src/
   state/
     BillContext.tsx      reducer holding the bill + autosave
     useRemoteSync.ts     organizer <-> Firestore, once published
-  components/            GirlLogo, MoneyInput, QuantityStepper, ClaimRow,
+  components/            GirlLogo, InstallButton, MoneyInput, QuantityStepper,
+                         ClaimRow,
                          ItemForm, ItemList, ChargeEditor, TotalsPanel,
                          ParticipantForm, ParticipantList
   screens/
