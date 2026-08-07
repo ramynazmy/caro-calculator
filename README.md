@@ -398,25 +398,31 @@ These rules confine all access to `/bills`, require every document to carry an
 expiry, cap document sizes so nobody can burn your quota, and forbid clients
 from deleting anything.
 
-### 2.4 Turn on auto-delete (two TTL policies)
+### 2.4 Retention — read this, but there is nothing to do
 
-Old dinners should not sit on a server forever. Firestore deletes documents for
-you once a timestamp field passes, and the app already writes `expiresAt` 90
-days out on everything it saves.
+Every document the app writes carries an `expiresAt` timestamp 90 days out,
+ready for a Firestore TTL policy to delete it automatically.
 
-Firestore Database → **TTL** tab → **Create policy**, twice:
+**You cannot turn TTL on with a free account.** Configuring a TTL policy calls
+the Firestore Admin API, which refuses with
+`403: Project ... has billing disabled` unless the project is on the paid Blaze
+plan. This is a Google restriction, not a setting you have missed.
 
-| Collection group | Timestamp field |
-|---|---|
-| `bills` | `expiresAt` |
-| `claims` | `expiresAt` |
+So on the Spark plan, published bills stay on the server until you remove them.
+Your options:
 
-Both are needed: deleting a bill document does **not** delete its `claims`
-subcollection, so claims need their own policy or they would outlive the bill.
-Every time you push changes to a bill its expiry slides forward another 90
-days, so a bill only goes stale once you stop using it.
+- **Do nothing.** A bill is ~2 KB against a 1 GB free tier — about 500,000
+  bills. Storage will never be the problem. The only cost is that old dinners
+  remain retrievable by anyone holding their link.
+- **Delete bills you care about by hand** in the Firestore console:
+  Firestore Database → Data → `bills` → pick the document → Delete. Remember to
+  delete its `claims` subcollection too.
+- **Upgrade to Blaze later** if you ever want it automated. Blaze still costs
+  $0 at this usage — it just requires a card on file. The `expiresAt` fields
+  are already being written, so TTL would start working on existing bills the
+  moment you enabled it, with no code change.
 
-To change the window, edit `RETENTION_DAYS` in `src/lib/firebase.ts`.
+To change the 90-day window, edit `RETENTION_DAYS` in `src/lib/firebase.ts`.
 
 ### 2.5 Get your six keys
 
@@ -502,7 +508,7 @@ check the Actions run log for the build step and confirm all six secrets exist.
 | GitHub Actions | Unlimited minutes on public repos | Every push redeploys, free. |
 | Firestore reads | 50,000/day | A guest opening a link costs a handful. Thousands of guests a day. |
 | Firestore writes | 20,000/day | ~1 per bill + ~2 per participant. **Hundreds of bills a day.** |
-| Firestore storage | 1 GB | A bill is ~2 KB, and they expire after 90 days. Never a factor. |
+| Firestore storage | 1 GB | A bill is ~2 KB — about 500,000 bills. Never a factor. |
 
 The realistic ceiling is 20,000 daily writes, far beyond a group of friends
 eating out. Nothing here can generate a bill, because the Spark plan has no
@@ -522,7 +528,10 @@ was dropped when the link was pasted. The URL must be
 `…/caro-calculator/#/b/<id>`.
 
 **"Missing or insufficient permissions" in the browser console.** The rules in
-2.3 were not published, or a TTL field name is not exactly `expiresAt`.
+2.3 were not published.
+
+**`403: billing disabled` when adding a TTL policy.** Expected on the free
+Spark plan — see 2.4. It does not affect the app.
 
 **The workflow fails on `npm ci`.** `package-lock.json` is out of step with
 `package.json` — run `npm install` locally and commit the updated lockfile.
