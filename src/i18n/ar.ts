@@ -205,6 +205,5 @@ export const ar: Dict = {
   'install.ios': 'للتثبيت: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».',
   'install.dismiss': 'ليس الآن',
 
-  'phase.next': 'التالي: النشر على GitHub Pages (المرحلة الرابعة)',
   'phase.savedLocally': 'يتم الحفظ تلقائياً على هذا الجهاز',
 }

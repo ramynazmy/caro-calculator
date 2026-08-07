@@ -71,10 +71,6 @@ function OrganizerApp() {
         {tab === 'assign' && <Assign />}
         {tab === 'summary' && <Summary />}
       </main>
-
-      <footer className="appfoot">
-        <span className="muted">{t('phase.next')}</span>
-      </footer>
     </div>
   )
 }

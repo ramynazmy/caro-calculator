@@ -208,7 +208,6 @@ export const en = {
   'install.ios': 'To install: tap Share, then “Add to Home Screen”.',
   'install.dismiss': 'Not now',
 
-  'phase.next': 'Next up: deploying to GitHub Pages (Phase 4)',
   'phase.savedLocally': 'Saved on this device automatically',
 } as const
 
