@@ -8,6 +8,7 @@ import { ItemForm } from '../components/ItemForm'
 import { ItemList } from '../components/ItemList'
 import { ChargeEditor } from '../components/ChargeEditor'
 import { TotalsPanel } from '../components/TotalsPanel'
+import { ScanReceipt } from '../components/ScanReceipt'
 
 export function BillEntry() {
   const { bill, dispatch } = useBill()
@@ -59,6 +60,10 @@ export function BillEntry() {
           <h2 className="card__title">{t('items.heading')}</h2>
           <span className="card__count">{t('items.count', { n: bill.items.length })}</span>
         </div>
+
+        {/* Scanning is a shortcut, not a dependency — the manual form below
+            stays the primary path and works with no signal. */}
+        <ScanReceipt />
 
         <ItemForm
           currency={bill.currency}

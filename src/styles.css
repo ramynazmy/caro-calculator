@@ -1309,3 +1309,174 @@ select.input {
   color: var(--accent-strong);
   font-weight: 600;
 }
+
+/* --- Receipt scanning ----------------------------------------------------- */
+
+.scan-trigger {
+  width: 100%;
+  border-style: dashed;
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+/* Modal sheet: full screen on a phone, centred card on anything wider. */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(28 25 23 / 0.45);
+  padding: 0;
+}
+
+.sheet__panel {
+  width: 100%;
+  max-width: 640px;
+  max-height: 92dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 16px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+@media (min-width: 640px) {
+  .sheet {
+    align-items: center;
+    padding: 16px;
+  }
+  .sheet__panel {
+    border-radius: var(--radius);
+  }
+}
+
+.sheet__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.sheet__body {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.sheet__actions {
+  display: flex;
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  padding-top: 8px;
+  background: var(--surface);
+}
+
+.sheet__actions .btn {
+  flex: 1;
+}
+
+.sheet__busy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 0;
+  text-align: center;
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--accent-soft);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { rotate: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 2.4s; }
+}
+
+.scan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scan-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+/* The model told us it was guessing on this line. */
+.scan-row--unsure {
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+}
+
+.scan-row__top,
+.scan-row__bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scan-row__name {
+  flex: 1;
+  min-height: 40px;
+}
+
+.scan-row__price {
+  width: 110px;
+  min-height: 40px;
+  font-variant-numeric: tabular-nums;
+}
+
+.scan-charges {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.scan-charges__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.scan-charges__list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.scan-charges__list .is-strong {
+  color: var(--text);
+  font-weight: 700;
+}
