@@ -27,3 +27,6 @@ dist-ssr
 # not because the keys are secret, but so each checkout stays independent.
 .env
 .env.local
+
+# Compiled output from `npm run verify`
+.verify

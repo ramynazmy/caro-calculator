@@ -34,6 +34,7 @@ Other commands:
 
 ```bash
 npm run build     # type-check + production build into dist/
+npm run verify    # the maths checks (see "Verification" below)
 npm run preview   # serve the production build locally
 npm run lint      # oxlint
 ```
@@ -172,7 +173,7 @@ tax), so the organizer absorbs at most a few piastres in total. In exchange,
 every number on the summary screen adds up, including the per-person
 breakdowns.
 
-Verified by 5,000 randomized bills — random party sizes, prices, quantities,
+Verified by `npm run verify`, which runs 5,000 randomized bills — random party sizes, prices, quantities,
 deliberate over-claims, percentage and fixed charges, both split settings — all
 of which reconcile exactly. `allocate` also handles the degenerate cases:
 nobody nominated (falls back to largest-remainder), all weights zero (falls
@@ -228,6 +229,25 @@ unreadable data is discarded rather than crashing the app on load.
 
 ---
 
+## Verification
+
+```bash
+npm run verify
+```
+
+Three suites in `tests/`, no test framework — each is a plain script that
+prints PASS/FAIL lines, so the dependency list stays at zero and the output is
+readable when something breaks at 1am after a dinner.
+
+| Suite | Covers |
+|---|---|
+| `totals` | parsing (including Arabic-Indic digits and 3-decimal KWD), formatting, the Egyptian compound-VAT order, discounts, and the receipt-matching solver |
+| `participants` | headcount vs entries, both split bases, and the localStorage schema migrations v1 → v2 → v3 including corrupt input |
+| `shares` | weighted allocation, shared and unclaimed items, over-claim capping, proportional vs equal tax, and **5,000 randomized bills asserting the shares always sum to the bill total** |
+
+The deploy workflow runs these before building, so a change that would get
+someone's share wrong cannot reach the live site.
+
 ## Project layout
 
 ```
@@ -275,31 +295,246 @@ separate chunk that Option B never downloads. The main bundle is ~79 KB gzipped.
 - [x] **Phase 1** — bill entry: items, discount/service/tax, receipt cross-check
 - [x] **Phase 2** — participants with party sizes, organizer, split basis
 - [x] **Phase 3** — assignment (shared link or offline), summary, WhatsApp export
-- [ ] **Phase 4** — automatic deployment to GitHub Pages
+- [x] **Phase 4** — automatic deployment to GitHub Pages
 
-## Setting up Firebase (needed only for the shared link)
+---
 
-Full step-by-step walkthrough comes in Phase 4. The short version:
+# Setup, end to end
 
-1. <https://console.firebase.google.com> → **Add project** (no credit card, the
-   free Spark plan is the default).
-2. **Build → Firestore Database → Create database**, start in *test mode*.
-3. **Project settings → Your apps → Web (`</>`)** → register the app → copy the
-   six `firebaseConfig` values.
-4. `cp .env.example .env`, paste the six values in, and restart `npm run dev`.
+Two independent halves. **Part 1 gets the app online** — do this first and you
+have a working bill splitter in offline mode. **Part 2 turns on the shared
+link.** Nothing in part 1 depends on part 2.
 
-Until you do this the app runs fine — the *Share a link* panel simply explains
-what is missing, and *I'll assign* works as normal.
+Everything below is $0 with no credit card. Set your username once so the
+commands can be pasted as-is:
 
-Note on security rules: with no logins, anyone holding a bill's link can read
-and write that bill. That is the intended design (participants have no
-accounts), and bill ids are 80-bit random so they cannot be guessed. Phase 4
-includes rules that scope writes to a single bill document and cap document
-size.
+```bash
+export GH_USER=your-github-username
+```
 
-## Deployment
+## Part 1 — Put it on GitHub Pages
 
-Covered in Phase 4. The build is already configured for it: `vite.config.ts`
-sets `base` to `/bill-splitter/` for production builds, which is what GitHub
-Pages needs when the site is served from a repository subpath. Change the
-`REPO_NAME` constant there if you name the repository something else.
+### 1.1 Create the repository
+
+Either with the GitHub CLI:
+
+```bash
+gh repo create caro-calculator --public --source=. --remote=origin --push
+```
+
+Or by hand: go to <https://github.com/new>, name it **`caro-calculator`**, set
+it to **Public**, and do *not* tick "add a README" — then:
+
+```bash
+git remote add origin https://github.com/$GH_USER/caro-calculator.git
+git push -u origin main
+```
+
+> **The repo must be public.** GitHub Pages on a private repository requires a
+> paid plan. Public keeps this at $0. The repo holds no secrets — `.env` is
+> gitignored, and the Firebase keys go into Actions secrets in part 2.
+
+> **The name must be `caro-calculator`,** because `vite.config.ts` builds asset
+> paths from it. To use a different name, change `REPO_NAME` at the top of
+> `vite.config.ts` to match, and commit that.
+
+### 1.2 Turn Pages on
+
+1. Go to `https://github.com/$GH_USER/caro-calculator/settings/pages`
+2. Under **Build and deployment → Source**, choose **GitHub Actions**
+   (*not* "Deploy from a branch").
+
+That is the only setting. The workflow in `.github/workflows/deploy.yml` does
+the rest.
+
+### 1.3 Watch the first deploy
+
+```bash
+gh run watch          # or open the Actions tab in the browser
+```
+
+It takes about a minute. When it goes green, your app is at:
+
+**`https://$GH_USER.github.io/caro-calculator/`**
+
+From now on every push to `main` redeploys automatically.
+
+At this point the app fully works — enter a bill, add people, use **I'll
+assign**, get the summary, send it on WhatsApp. Only the shared link is
+missing.
+
+## Part 2 — Turn on the shared link
+
+### 2.1 Create the Firebase project
+
+1. Go to <https://console.firebase.google.com> and sign in with any Google
+   account.
+2. **Create a project** → name it `caro-calculator` → **Continue**.
+3. Google Analytics: **turn it off**. You do not need it, and it asks for more
+   consent than this app warrants.
+4. **Create project**, wait, **Continue**.
+
+You are on the **Spark** plan by default: free forever, no credit card, and it
+never asks for one unless you deliberately upgrade.
+
+### 2.2 Create the database
+
+1. Left sidebar → **Build → Firestore Database → Create database**.
+2. Location: **`eur3`** or **`europe-west1`** — closest to Egypt, so the app
+   feels quicker. *This cannot be changed later.*
+3. Start in **production mode** (locked down). You paste proper rules next.
+4. **Create**.
+
+### 2.3 Paste the security rules
+
+Open the **Rules** tab, replace everything with the contents of
+[`firestore.rules`](./firestore.rules) from this repo, and **Publish**.
+
+```bash
+cat firestore.rules      # then copy/paste into the console
+```
+
+These rules confine all access to `/bills`, require every document to carry an
+expiry, cap document sizes so nobody can burn your quota, and forbid clients
+from deleting anything.
+
+### 2.4 Turn on auto-delete (two TTL policies)
+
+Old dinners should not sit on a server forever. Firestore deletes documents for
+you once a timestamp field passes, and the app already writes `expiresAt` 90
+days out on everything it saves.
+
+Firestore Database → **TTL** tab → **Create policy**, twice:
+
+| Collection group | Timestamp field |
+|---|---|
+| `bills` | `expiresAt` |
+| `claims` | `expiresAt` |
+
+Both are needed: deleting a bill document does **not** delete its `claims`
+subcollection, so claims need their own policy or they would outlive the bill.
+Every time you push changes to a bill its expiry slides forward another 90
+days, so a bill only goes stale once you stop using it.
+
+To change the window, edit `RETENTION_DAYS` in `src/lib/firebase.ts`.
+
+### 2.5 Get your six keys
+
+1. Click **⚙ gear → Project settings**.
+2. Scroll to **Your apps** → click the web icon **`</>`**.
+3. Nickname `web`, leave "Also set up Firebase Hosting" **unticked** (you are
+   using GitHub Pages) → **Register app**.
+4. You now see a `firebaseConfig` block. Keep this tab open.
+
+```js
+const firebaseConfig = {
+  apiKey: "AIzaSy…",                             // -> VITE_FIREBASE_API_KEY
+  authDomain: "caro-calculator.firebaseapp.com", // -> VITE_FIREBASE_AUTH_DOMAIN
+  projectId: "caro-calculator",                  // -> VITE_FIREBASE_PROJECT_ID
+  storageBucket: "caro-calculator.appspot.com",  // -> VITE_FIREBASE_STORAGE_BUCKET
+  messagingSenderId: "123456789012",             // -> VITE_FIREBASE_MESSAGING_SENDER_ID
+  appId: "1:123456789012:web:abc123"             // -> VITE_FIREBASE_APP_ID
+};
+```
+
+> These are **not secrets**. Firebase web config is public by design and ships
+> inside the JavaScript bundle of every Firebase web app in the world. What
+> protects your data is the rules you pasted in 2.3, not hiding these values.
+> They live in Actions secrets so you can rotate them without a commit.
+
+### 2.6 Put the keys into GitHub
+
+With the CLI — paste each value when prompted:
+
+```bash
+gh secret set VITE_FIREBASE_API_KEY
+gh secret set VITE_FIREBASE_AUTH_DOMAIN
+gh secret set VITE_FIREBASE_PROJECT_ID
+gh secret set VITE_FIREBASE_STORAGE_BUCKET
+gh secret set VITE_FIREBASE_MESSAGING_SENDER_ID
+gh secret set VITE_FIREBASE_APP_ID
+```
+
+Or by hand: **Settings → Secrets and variables → Actions → New repository
+secret**, six times, using the names above.
+
+### 2.7 Redeploy
+
+Secrets are read at build time, so the site needs rebuilding:
+
+```bash
+gh workflow run "Deploy to GitHub Pages"
+```
+
+Or push any commit. Once it is green, open the site → **Assign** tab → the
+*Share a link* panel now offers **Create the shared link**.
+
+### 2.8 And for local development
+
+```bash
+cp .env.example .env     # then paste the same six values in
+npm run dev
+```
+
+`.env` is gitignored, so your local keys never reach the repo.
+
+---
+
+## Checking it worked
+
+1. Open the site, enter a couple of items, add two participants.
+2. **Assign → Share a link → Create the shared link**.
+3. Open that link in a private window — you should see the name picker.
+4. Pick a name, choose an item, **Save my picks**.
+5. Back in the first window, **Who has responded** flips to ✓ and the
+   **Summary** tab updates. No refresh needed.
+
+If step 3 shows *"This link is not valid"*, the keys did not reach the build —
+check the Actions run log for the build step and confirm all six secrets exist.
+
+## What this costs
+
+**Nothing, and no credit card at any point.**
+
+| | Free allowance | What that means here |
+|---|---|---|
+| GitHub Pages | 1 GB site, 100 GB/month traffic | The site is ~250 KB. Effectively unlimited. |
+| GitHub Actions | Unlimited minutes on public repos | Every push redeploys, free. |
+| Firestore reads | 50,000/day | A guest opening a link costs a handful. Thousands of guests a day. |
+| Firestore writes | 20,000/day | ~1 per bill + ~2 per participant. **Hundreds of bills a day.** |
+| Firestore storage | 1 GB | A bill is ~2 KB, and they expire after 90 days. Never a factor. |
+
+The realistic ceiling is 20,000 daily writes, far beyond a group of friends
+eating out. Nothing here can generate a bill, because the Spark plan has no
+payment method attached — if you ever did exceed a quota the app would stop
+working for the rest of the day rather than charge you.
+
+## Troubleshooting
+
+**Blank white page after deploying.** `REPO_NAME` in `vite.config.ts` does not
+match the actual repository name. They must be identical.
+
+**404 at the site root.** Pages source is still "Deploy from a branch". Change
+it to **GitHub Actions** (step 1.2) and re-run the workflow.
+
+**A shared link opens the organizer's app instead of the name picker.** The `#`
+was dropped when the link was pasted. The URL must be
+`…/caro-calculator/#/b/<id>`.
+
+**"Missing or insufficient permissions" in the browser console.** The rules in
+2.3 were not published, or a TTL field name is not exactly `expiresAt`.
+
+**The workflow fails on `npm ci`.** `package-lock.json` is out of step with
+`package.json` — run `npm install` locally and commit the updated lockfile.
+
+## Why hash routing, and no 404.html
+
+GitHub Pages serves static files. Asking it for `/caro-calculator/b/abc123`
+returns 404, because no such file exists. The usual workaround is a `404.html`
+that reroutes into the app — a redirect hack that breaks browser history in
+subtle ways and needs re-testing whenever Pages changes.
+
+Everything after `#` is never sent to the server, so
+`…/caro-calculator/#/b/abc123` is, as far as Pages is concerned, a request for
+the site root, which always exists. The link you send a friend cannot 404.
+That is worth more than a prettier URL.

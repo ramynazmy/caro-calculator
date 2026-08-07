@@ -34,6 +34,10 @@ jobs:
       # package-lock.json and cannot drift.
       - run: npm ci
 
+      # The maths checks, including the 5,000-bill reconciliation fuzz. A
+      # deploy that would get someone's share wrong should never go out.
+      - run: npm run verify
+
       # `npm run build` runs `tsc -b` first, so a type error fails the deploy
       # instead of shipping a broken site.
       - run: npm run build
