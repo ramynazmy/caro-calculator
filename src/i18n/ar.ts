@@ -182,6 +182,29 @@ export const ar: Dict = {
   'chargeSplit.proportionalHint': 'من أكل ضعف غيره يدفع ضعف الضريبة والخدمة.',
   'chargeSplit.equalHint': 'الضريبة والخدمة تُقسَّم بالتساوي، بنفس طريقة الأصناف المشتركة.',
 
+  'charges.tips': 'البقشيش',
+  'charges.tipsHint': 'فوق الفاتورة المطبوعة. النسبة تُحسب على الطعام بعد الخصم.',
+
+  'totals.tips': 'البقشيش',
+  'totals.payable': 'المبلغ المطلوب دفعه',
+
+  'roundup.heading': 'تقريب نصيب كل شخص لأعلى',
+  'roundup.off': 'مغلق',
+  'roundup.to': 'إلى {n}',
+  'roundup.hint': 'يُقرّب نصيب كل شخص لأعلى إلى مضاعف {amount}. الفرق يذهب للبقشيش — لا يأخذه أحد.',
+  'roundup.offHint': 'كل شخص يدفع نصيبه بالقرش الواحد.',
+  'roundup.collected': 'التقريب يضيف {amount} للبقشيش.',
+
+  'summary.roundUp': 'تقريب',
+  'summary.tipShare': 'بقشيش',
+  'summary.billTotal': 'الفاتورة',
+  'summary.tipsTotal': 'البقشيش (مع التقريب)',
+  'summary.matchesWithTip': 'الفاتورة مغطّاة تماماً، زائد {amount} بقشيش.',
+
+  'install.button': 'ثبّت التطبيق',
+  'install.ios': 'للتثبيت: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».',
+  'install.dismiss': 'ليس الآن',
+
   'phase.next': 'التالي: النشر على GitHub Pages (المرحلة الرابعة)',
   'phase.savedLocally': 'يتم الحفظ تلقائياً على هذا الجهاز',
 }

@@ -7,7 +7,7 @@
  */
 
 import type { Bill, BillItem } from '../types'
-import { computeTotals } from './calc'
+import { ceilToMultiple, computeTotals, roundUpStepMinor } from './calc'
 import type { BillTotals } from './calc'
 import { allocate } from './allocate'
 
@@ -38,7 +38,13 @@ export interface ParticipantShare {
   netFoodMinor: number
   serviceMinor: number
   taxMinor: number
-  /** What they actually pay. */
+  /** Their slice of the explicit tip. */
+  tipsMinor: number
+  /** netFood + service + tax + tips, before rounding. */
+  subtotalMinor: number
+  /** Added by rounding their share up to the next multiple. Goes to the tip. */
+  roundUpMinor: number
+  /** What they actually hand over — `subtotalMinor + roundUpMinor`. */
   totalMinor: number
   /** Has this person saved anything through the share link? */
   hasResponded: boolean
@@ -70,7 +76,17 @@ export interface SplitResult {
   communalTotalMinor: number
   /** Non-empty when two people claimed the same portion — needs a human. */
   overclaims: OverclaimLine[]
-  /** Sum of all shares. Equal to `totals.calculatedTotalMinor` by construction. */
+  /** Collected purely by rounding shares up. */
+  roundUpTotalMinor: number
+  /**
+   * Everything the restaurant staff receive beyond the printed bill:
+   * the explicit tip plus every piastre of round-up.
+   */
+  tipsTotalMinor: number
+  /**
+   * Sum of all shares. Equal to
+   * `totals.calculatedTotalMinor + tipsTotalMinor` by construction.
+   */
   grandTotalMinor: number
   /** People who have not yet picked anything through the share link. */
   pendingParticipantIds: string[]
@@ -126,6 +142,8 @@ export function computeShares(bill: Bill): SplitResult {
       communal: bill.items.map(toCommunalLine),
       communalTotalMinor: totals.itemsSubtotalMinor,
       overclaims: [],
+      roundUpTotalMinor: 0,
+      tipsTotalMinor: totals.tipsMinor,
       grandTotalMinor: 0,
       pendingParticipantIds: [],
     }
@@ -210,12 +228,24 @@ export function computeShares(bill: Bill): SplitResult {
   const discountPerPerson = allocate(totals.discountMinor, foodMinor, organizerIndex)
   const netFoodMinor = foodMinor.map((food, i) => food - discountPerPerson[i])
 
-  // --- 4. Service and tax ---------------------------------------------------
+  // --- 4. Service, tax and the explicit tip ---------------------------------
   const chargeWeights = bill.chargeSplit === 'proportional' ? netFoodMinor : headWeights
   const servicePerPerson = allocate(totals.serviceMinor, chargeWeights, organizerIndex)
   const taxPerPerson = allocate(totals.taxMinor, chargeWeights, organizerIndex)
+  const tipsPerPerson = allocate(totals.tipsMinor, chargeWeights, organizerIndex)
 
-  // --- 5. Assemble ----------------------------------------------------------
+  // --- 5. Round each person up ---------------------------------------------
+  // Applied per person, AFTER their exact share is known, so the underlying
+  // split stays fair and only the final handover is tidied. Someone who owes
+  // nothing is left at zero rather than being charged for the privilege.
+  const step = roundUpStepMinor(bill)
+  const subtotalMinor = netFoodMinor.map(
+    (net, i) => net + servicePerPerson[i] + taxPerPerson[i] + tipsPerPerson[i],
+  )
+  const roundUpPerPerson = subtotalMinor.map((amount) => ceilToMultiple(amount, step) - amount)
+  const roundUpTotalMinor = roundUpPerPerson.reduce((a, b) => a + b, 0)
+
+  // --- 6. Assemble ----------------------------------------------------------
   const shares: ParticipantShare[] = people.map((person, i) => ({
     participantId: person.id,
     name: person.name,
@@ -229,7 +259,10 @@ export function computeShares(bill: Bill): SplitResult {
     netFoodMinor: netFoodMinor[i],
     serviceMinor: servicePerPerson[i],
     taxMinor: taxPerPerson[i],
-    totalMinor: netFoodMinor[i] + servicePerPerson[i] + taxPerPerson[i],
+    tipsMinor: tipsPerPerson[i],
+    subtotalMinor: subtotalMinor[i],
+    roundUpMinor: roundUpPerPerson[i],
+    totalMinor: subtotalMinor[i] + roundUpPerPerson[i],
     hasResponded: bill.respondedAt[person.id] !== undefined,
   }))
 
@@ -239,6 +272,9 @@ export function computeShares(bill: Bill): SplitResult {
     communal,
     communalTotalMinor,
     overclaims,
+    roundUpTotalMinor,
+    // Everything above the printed bill ends up in the tip.
+    tipsTotalMinor: totals.tipsMinor + roundUpTotalMinor,
     grandTotalMinor: shares.reduce((sum, s) => sum + s.totalMinor, 0),
     pendingParticipantIds: shares.filter((s) => !s.hasResponded).map((s) => s.participantId),
   }

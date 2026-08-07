@@ -15,13 +15,14 @@ const I = (id: string, price: number, qty: number, shared: boolean) =>
 
 function bill(over: Partial<Bill> = {}): Bill {
   return {
-    version: 3, id: 'b', title: '', currency: 'EGP', createdAt: 0,
+    version: 4, id: 'b', title: '', currency: 'EGP', createdAt: 0,
     items: [], taxAppliesToService: true, actualTotalMinor: null,
     chargeSplit: 'proportional', claims: {}, locked: false,
     respondedAt: {}, published: false,
     discount: { enabled: false, mode: 'percent', percent: 0, fixedMinor: 0 },
     service: { enabled: false, mode: 'percent', percent: 12, fixedMinor: 0 },
     tax: { enabled: false, mode: 'percent', percent: 14, fixedMinor: 0 },
+    tips: { enabled: false, mode: 'percent', percent: 10, fixedMinor: 0 }, roundUpTo: 0,
     participants: [], organizerId: null, splitBasis: 'perPerson',
     ...over,
   }
@@ -75,8 +76,9 @@ const migrated = loadBill()
 eq('v1 bill survives upgrade', migrated?.title, 'Old bill')
 eq('v1 items preserved', migrated?.items.length, 1)
 eq('v1 service preserved', migrated?.service.percent, 12)
-eq('v1 migrated all the way to v3', migrated?.version, 3)
+eq('v1 migrated all the way to v4', migrated?.version, 4)
 eq('v3 fields defaulted', [migrated?.chargeSplit, migrated?.locked, migrated?.published], ['proportional', false, false])
+eq('v4 fields defaulted (tips off, no rounding)', [migrated?.tips.enabled, migrated?.roundUpTo], [false, 0])
 eq('splitBasis defaulted', migrated?.splitBasis, 'perPerson')
 eq('organizerId defaulted', migrated?.organizerId, null)
 

@@ -41,11 +41,21 @@ export function buildSummaryText(
     if (share.discountMinor > 0) {
       lines.push(`  • ${t('totals.discount')}: −${money(share.discountMinor)}`)
     }
+    if (share.tipsMinor > 0) {
+      lines.push(`  • ${t('summary.tipShare')}: ${money(share.tipsMinor)}`)
+    }
+    if (share.roundUpMinor > 0) {
+      lines.push(`  • ${t('summary.roundUp')}: +${money(share.roundUpMinor)}`)
+    }
     lines.push('')
   }
 
   lines.push('—'.repeat(20))
-  lines.push(`${t('totals.calculated')}: ${money(result.grandTotalMinor)}`)
+  lines.push(`${t('summary.billTotal')}: ${money(result.totals.calculatedTotalMinor)}`)
+  if (result.tipsTotalMinor > 0) {
+    lines.push(`${t('summary.tipsTotal')}: ${money(result.tipsTotalMinor)}`)
+  }
+  lines.push(`${t('summary.grandTotal')}: ${money(result.grandTotalMinor)}`)
 
   return lines.join('\n')
 }

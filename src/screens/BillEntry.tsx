@@ -119,6 +119,17 @@ export function BillEntry() {
             ) : null
           }
         />
+
+        {/* A tip sits above the printed bill rather than inside it, so it is
+            never part of the receipt cross-check. */}
+        <ChargeEditor
+          label={t('charges.tips')}
+          charge={bill.tips}
+          currency={bill.currency}
+          resultMinor={totals.tipsMinor}
+          onChange={(patch) => dispatch({ type: 'setCharge', key: 'tips', patch })}
+          extra={<p className="check__hint">{t('charges.tipsHint')}</p>}
+        />
       </section>
 
       {/* ---- Totals & receipt cross-check --------------------------------- */}

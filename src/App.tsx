@@ -9,6 +9,7 @@ import { Summary } from './screens/Summary'
 import { ParticipantClaim } from './screens/ParticipantClaim'
 import { totalHeadcount } from './lib/calc'
 import { GirlLogo } from './components/GirlLogo'
+import { InstallButton } from './components/InstallButton'
 
 type Tab = 'bill' | 'people' | 'assign' | 'summary'
 
@@ -43,6 +44,7 @@ function OrganizerApp() {
           <h1 className="appbar__title">{t('app.title')}</h1>
           <p className="appbar__tagline">{t('app.tagline')}</p>
         </div>
+        <InstallButton />
         <button type="button" className="btn btn--ghost btn--small" onClick={toggleLang}>
           {t('lang.switch')}
         </button>

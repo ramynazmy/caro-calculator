@@ -4,7 +4,7 @@ import type { Bill } from '../types'
 
 const BILL_STORAGE_KEY = 'billsplitter.bill.v1'
 
-const CURRENT_VERSION = 3
+const CURRENT_VERSION = 4
 
 /**
  * Bring an older saved bill up to the current schema, one step at a time.
@@ -35,6 +35,17 @@ function migrate(raw: unknown): Bill | null {
       locked: false,
       respondedAt: {},
       published: false,
+    }
+  }
+
+  if (bill.version === 3) {
+    // v3 -> v4: an explicit tip, and rounding shares up to a whole amount.
+    // Both default to off, so an in-progress bill's numbers do not move.
+    bill = {
+      ...bill,
+      version: 4,
+      tips: { enabled: false, mode: 'percent', percent: 10, fixedMinor: 0 },
+      roundUpTo: 0,
     }
   }
 

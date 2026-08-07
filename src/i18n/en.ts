@@ -185,6 +185,29 @@ export const en = {
     'Someone who ate twice as much pays twice the tax and service.',
   'chargeSplit.equalHint': 'Tax and service divided flat, the same way shared items are.',
 
+  'charges.tips': 'Tip',
+  'charges.tipsHint': 'On top of the printed bill. Percentages are of the food, after any discount.',
+
+  'totals.tips': 'Tip',
+  'totals.payable': 'Total to hand over',
+
+  'roundup.heading': 'Rounding each share up',
+  'roundup.off': 'Off',
+  'roundup.to': 'To {n}',
+  'roundup.hint': 'Every person’s share is rounded up to a whole {amount}. The extra goes to the tip — nobody keeps it.',
+  'roundup.offHint': 'Everyone pays their exact share, to the piastre.',
+  'roundup.collected': 'Rounding adds {amount} to the tip.',
+
+  'summary.roundUp': 'Rounded up',
+  'summary.tipShare': 'Tip',
+  'summary.billTotal': 'Bill',
+  'summary.tipsTotal': 'Tip (incl. rounding)',
+  'summary.matchesWithTip': 'Bill covered exactly, plus {amount} tip.',
+
+  'install.button': 'Install app',
+  'install.ios': 'To install: tap Share, then “Add to Home Screen”.',
+  'install.dismiss': 'Not now',
+
   'phase.next': 'Next up: deploying to GitHub Pages (Phase 4)',
   'phase.savedLocally': 'Saved on this device automatically',
 } as const

@@ -85,7 +85,7 @@ export type Claims = Record<string, Record<string, number>>
 
 export interface Bill {
   /** Schema version, so old saved bills can be migrated instead of crashing. */
-  version: 3
+  version: 4
   /** Doubles as the Firestore document id, so it is also the share link. */
   id: string
   /** Optional label, e.g. "Sequoia, Friday". */
@@ -99,6 +99,19 @@ export interface Bill {
   discount: Charge
   service: Charge
   tax: Charge
+
+  /**
+   * A tip, on top of the printed bill.
+   *
+   * Deliberately NOT part of `calculatedTotal`: the receipt cross-check on the
+   * Bill tab compares our maths against what the restaurant printed, and a tip
+   * is money the restaurant never printed. Folding it in would make every
+   * correctly-entered bill look like a mismatch.
+   *
+   * When expressed as a percentage it is a percentage of the food subtotal
+   * after any discount — the same base the service charge uses.
+   */
+  tips: Charge
   /**
    * Egyptian receipts normally compute service on the food subtotal, then
    * charge VAT on (food + service). Set false if your restaurant taxes the
@@ -124,8 +137,22 @@ export interface Bill {
   /** How shared and unclaimed costs are divided. */
   splitBasis: SplitBasis
 
-  /** How tax and service are spread across people. */
+  /** How tax, service and tips are spread across people. */
   chargeSplit: ChargeSplit
+
+  /**
+   * Round every person's share UP to the next multiple of this many whole
+   * currency units — 5 means everyone pays a round multiple of 5 EGP. `0`
+   * turns it off.
+   *
+   * Stored in MAJOR units, not minor, so it stays meaningful when the currency
+   * changes: 5 means "5 of whatever this is", whether that is 500 piastres or
+   * 5000 fils.
+   *
+   * Everything the rounding collects goes to the tip — nobody is quietly
+   * overcharged, the surplus just lands somewhere sensible.
+   */
+  roundUpTo: number
 
   /** Who claimed which items, and how many. */
   claims: Claims

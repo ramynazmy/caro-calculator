@@ -25,7 +25,7 @@ function emptyCharge(defaultPercent: number): Charge {
 
 export function createEmptyBill(): Bill {
   return {
-    version: 3,
+    version: 4,
     id: newBillId(),
     title: '',
     currency: DEFAULT_CURRENCY,
@@ -36,12 +36,18 @@ export function createEmptyBill(): Bill {
     // effect once the organizer switches the charge on.
     service: emptyCharge(12),
     tax: emptyCharge(14),
+    // A tip is opt-in; 10% is the usual starting point in Egypt once the
+    // organizer switches it on.
+    tips: emptyCharge(10),
     taxAppliesToService: true,
     actualTotalMinor: null,
     participants: [],
     organizerId: null,
     splitBasis: 'perPerson',
     chargeSplit: 'proportional',
+    // Rounding every share up to a whole 5 EGP, with the surplus going to the
+    // tip. Off by default so nobody is surprised by paying more than the bill.
+    roundUpTo: 0,
     claims: {},
     locked: false,
     respondedAt: {},
@@ -49,7 +55,7 @@ export function createEmptyBill(): Bill {
   }
 }
 
-type ChargeKey = 'discount' | 'service' | 'tax'
+type ChargeKey = 'discount' | 'service' | 'tax' | 'tips'
 
 type Action =
   | { type: 'replace'; bill: Bill }
@@ -67,6 +73,7 @@ type Action =
   | { type: 'setOrganizer'; id: string }
   | { type: 'setSplitBasis'; basis: SplitBasis }
   | { type: 'setChargeSplit'; split: ChargeSplit }
+  | { type: 'setRoundUpTo'; value: number }
   | { type: 'setClaim'; participantId: string; itemId: string; quantity: number }
   | { type: 'clearClaims'; participantId: string }
   | { type: 'mergeRemoteClaims'; claims: Claims; respondedAt: Record<string, number> }
@@ -94,6 +101,7 @@ function rescaleAmounts(bill: Bill, nextCurrency: string): Bill {
     discount: { ...bill.discount, fixedMinor: conv(bill.discount.fixedMinor) },
     service: { ...bill.service, fixedMinor: conv(bill.service.fixedMinor) },
     tax: { ...bill.tax, fixedMinor: conv(bill.tax.fixedMinor) },
+    tips: { ...bill.tips, fixedMinor: conv(bill.tips.fixedMinor) },
     actualTotalMinor: bill.actualTotalMinor === null ? null : conv(bill.actualTotalMinor),
   }
 }
@@ -185,6 +193,9 @@ function reducer(bill: Bill, action: Action): Bill {
 
     case 'setChargeSplit':
       return { ...bill, chargeSplit: action.split }
+
+    case 'setRoundUpTo':
+      return { ...bill, roundUpTo: Math.max(0, action.value) }
 
     case 'setClaim': {
       const forPerson = { ...(bill.claims[action.participantId] ?? {}) }

@@ -21,6 +21,7 @@ import { formatMoney } from '../lib/money'
 import { useI18n } from '../i18n'
 import { ClaimRow } from '../components/ClaimRow'
 import { GirlLogo } from '../components/GirlLogo'
+import { InstallButton } from '../components/InstallButton'
 
 /** Remember who you said you were, per bill, so you only pick your name once. */
 const meKey = (billId: string) => `billsplitter.me.${billId}`
@@ -256,6 +257,7 @@ function Shell({
           <h1 className="appbar__title">Caro Calculator</h1>
           {title && <p className="appbar__tagline">{title}</p>}
         </div>
+        <InstallButton />
         {onToggleLang && (
           <button type="button" className="btn btn--ghost btn--small" onClick={onToggleLang}>
             {langLabel}

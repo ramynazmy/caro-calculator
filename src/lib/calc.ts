@@ -5,6 +5,7 @@
 
 import type { Bill, Charge } from '../types'
 import { percentOfMinor } from './money'
+import { getCurrency } from './currencies'
 
 /** Resolve a charge to an amount in minor units, given the base it applies to. */
 function chargeAmount(charge: Charge, baseMinor: number): number {
@@ -22,8 +23,15 @@ export interface BillTotals {
   netSubtotalMinor: number
   serviceMinor: number
   taxMinor: number
-  /** net + service + tax. What we believe the bill comes to. */
+  /**
+   * net + service + tax. What we believe the PRINTED bill comes to.
+   * Tips are excluded on purpose — see the note on `Bill.tips`.
+   */
   calculatedTotalMinor: number
+  /** The explicit tip, on top of the printed bill. */
+  tipsMinor: number
+  /** calculated + tips. What the table hands over, before any round-up. */
+  payableTotalMinor: number
   /** actual − calculated. Positive means the receipt is higher than our maths. */
   differenceMinor: number | null
   /** True when the organizer typed a receipt total that does not match. */
@@ -61,6 +69,10 @@ export function computeTotals(bill: Bill): BillTotals {
 
   const calculatedTotalMinor = netSubtotalMinor + serviceMinor + taxMinor
 
+  // A tip is voluntary money on top, so it is charged on the food (after
+  // discount) — the same base as the service charge — and never taxed.
+  const tipsMinor = chargeAmount(bill.tips, netSubtotalMinor)
+
   const differenceMinor =
     bill.actualTotalMinor === null ? null : bill.actualTotalMinor - calculatedTotalMinor
 
@@ -71,9 +83,26 @@ export function computeTotals(bill: Bill): BillTotals {
     serviceMinor,
     taxMinor,
     calculatedTotalMinor,
+    tipsMinor,
+    payableTotalMinor: calculatedTotalMinor + tipsMinor,
     differenceMinor,
     hasMismatch: differenceMinor !== null && differenceMinor !== 0,
   }
+}
+
+/**
+ * The round-up step in minor units, e.g. `roundUpTo: 5` in EGP -> 500 piastres.
+ * Returns 0 when rounding is switched off.
+ */
+export function roundUpStepMinor(bill: Bill): number {
+  if (!bill.roundUpTo || bill.roundUpTo <= 0) return 0
+  return Math.round(bill.roundUpTo * 10 ** getCurrency(bill.currency).decimals)
+}
+
+/** Smallest multiple of `step` that is >= `amount`. */
+export function ceilToMultiple(amountMinor: number, step: number): number {
+  if (step <= 0 || amountMinor <= 0) return amountMinor
+  return Math.ceil(amountMinor / step) * step
 }
 
 /** Total humans at the table — the sum of every entry's party size. */

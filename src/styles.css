@@ -1281,3 +1281,37 @@ select.input {
     min-width: 120px;
   }
 }
+
+/* --- Install prompt (mobile PWA) ------------------------------------------ */
+
+.install__btn {
+  flex: none;
+  white-space: nowrap;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.install--help {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+}
+
+.install__text {
+  margin: 0;
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--accent-strong);
+}
+
+/* Round-up line on a summary card: money going out on top of the bill. */
+.share-card__lines .is-roundup {
+  color: var(--accent-strong);
+  font-weight: 600;
+}

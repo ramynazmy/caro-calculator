@@ -6,7 +6,11 @@ import { remainingQuantity } from '../lib/shares'
 import { formatMoney } from '../lib/money'
 import { buildSummaryText, copyText, whatsappUrl } from '../lib/share'
 import { isFirebaseConfigured, saveClaims } from '../lib/firebase'
+import { getCurrency } from '../lib/currencies'
 import { useI18n } from '../i18n'
+
+/** Offered round-up steps, in whole currency units. 0 means no rounding. */
+const ROUND_UP_STEPS = [0, 1, 5, 10]
 
 export function Summary() {
   const { bill, dispatch } = useBill()
@@ -122,11 +126,35 @@ export function Summary() {
                     <span>{money(share.serviceMinor + share.taxMinor)}</span>
                   </li>
                 )}
+                {share.tipsMinor > 0 && (
+                  <li className="is-muted">
+                    <span>{t('summary.tipShare')}</span>
+                    <span>{money(share.tipsMinor)}</span>
+                  </li>
+                )}
+                {share.roundUpMinor > 0 && (
+                  <li className="is-roundup">
+                    <span>{t('summary.roundUp')}</span>
+                    <span>+{money(share.roundUpMinor)}</span>
+                  </li>
+                )}
               </ul>
             </li>
           ))}
         </ul>
 
+        {/* Bill and tip are kept visually separate: the restaurant is owed the
+            first number exactly, everything else is a gift. */}
+        <div className="totals__line">
+          <dt>{t('summary.billTotal')}</dt>
+          <dd>{money(result.totals.calculatedTotalMinor)}</dd>
+        </div>
+        {result.tipsTotalMinor > 0 && (
+          <div className="totals__line totals__line--credit">
+            <dt>{t('summary.tipsTotal')}</dt>
+            <dd>+{money(result.tipsTotalMinor)}</dd>
+          </div>
+        )}
         <div className="totals__line totals__line--grand">
           <dt>{t('summary.grandTotal')}</dt>
           <dd>{money(result.grandTotalMinor)}</dd>
@@ -135,7 +163,12 @@ export function Summary() {
         {/* The shares are built to sum exactly; say so, because the whole
             point of the app is that nobody has to check. */}
         {!result.totals.hasMismatch && (
-          <p className="note note--ok">✓ {t('summary.matches')}</p>
+          <p className="note note--ok">
+            ✓{' '}
+            {result.tipsTotalMinor > 0
+              ? t('summary.matchesWithTip', { amount: money(result.tipsTotalMinor) })
+              : t('summary.matches')}
+          </p>
         )}
         {organizer && (
           <p className="field__hint">{t('summary.organizerNote', { name: organizer.name })}</p>
@@ -218,6 +251,40 @@ export function Summary() {
             ? t('chargeSplit.proportionalHint')
             : t('chargeSplit.equalHint')}
         </p>
+      </section>
+
+      {/* --- rounding each share up --------------------------------------- */}
+      <section className="card">
+        <h2 className="card__title">{t('roundup.heading')}</h2>
+        <div className="segmented segmented--full" role="group" aria-label={t('roundup.heading')}>
+          {ROUND_UP_STEPS.map((step) => (
+            <button
+              key={step}
+              type="button"
+              className={`segmented__btn ${bill.roundUpTo === step ? 'is-active' : ''}`}
+              aria-pressed={bill.roundUpTo === step}
+              onClick={() => dispatch({ type: 'setRoundUpTo', value: step })}
+            >
+              {step === 0 ? t('roundup.off') : t('roundup.to', { n: step })}
+            </button>
+          ))}
+        </div>
+        <p className="field__hint">
+          {bill.roundUpTo === 0
+            ? t('roundup.offHint')
+            : t('roundup.hint', {
+                amount: formatMoney(
+                  bill.roundUpTo * 10 ** getCurrency(bill.currency).decimals,
+                  bill.currency,
+                  lang,
+                ),
+              })}
+        </p>
+        {result.roundUpTotalMinor > 0 && (
+          <p className="note note--ok">
+            {t('roundup.collected', { amount: money(result.roundUpTotalMinor) })}
+          </p>
+        )}
       </section>
 
       {/* --- send it round ------------------------------------------------ */}

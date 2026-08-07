@@ -59,6 +59,21 @@ export function TotalsPanel({ bill, totals, onSetActual, onFixService }: Props) 
           <dt>{t('totals.calculated')}</dt>
           <dd>{money(totals.calculatedTotalMinor)}</dd>
         </div>
+
+        {/* The tip is shown below the bill total, not folded into it, so the
+            receipt comparison above stays a like-for-like check. */}
+        {bill.tips.enabled && totals.tipsMinor > 0 && (
+          <>
+            <div className="totals__line">
+              <dt>{t('totals.tips')}</dt>
+              <dd>+{money(totals.tipsMinor)}</dd>
+            </div>
+            <div className="totals__line totals__line--grand">
+              <dt>{t('totals.payable')}</dt>
+              <dd>{money(totals.payableTotalMinor)}</dd>
+            </div>
+          </>
+        )}
       </dl>
 
       <div className="field totals__actual">

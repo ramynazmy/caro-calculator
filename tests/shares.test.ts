@@ -44,11 +44,12 @@ const I = (id: string, price: number, qty = 1, shared = false): BillItem =>
 
 function bill(over: Partial<Bill> = {}): Bill {
   return {
-    version: 3, id: 'b', title: 'T', currency: 'EGP', createdAt: 0,
+    version: 4, id: 'b', title: 'T', currency: 'EGP', createdAt: 0,
     items: [], taxAppliesToService: true, actualTotalMinor: null,
     discount: { enabled: false, mode: 'percent', percent: 0, fixedMinor: 0 },
     service: { enabled: false, mode: 'percent', percent: 12, fixedMinor: 0 },
     tax: { enabled: false, mode: 'percent', percent: 14, fixedMinor: 0 },
+    tips: { enabled: false, mode: 'percent', percent: 10, fixedMinor: 0 }, roundUpTo: 0,
     participants: [], organizerId: null, splitBasis: 'perPerson',
     chargeSplit: 'proportional', claims: {}, locked: false,
     respondedAt: {}, published: false,

@@ -1,7 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <!-- Same drawing as src/components/GirlLogo.tsx, with the brand orange baked
        in: a favicon has no CSS context to inherit currentColor from. If you
-       change --accent in styles.css, change the four #ea580c values here too. -->
+       change the accent colour in styles.css, change the #ea580c values here
+       too. (No double hyphens in this comment: they are invalid inside XML
+       comments and make strict SVG parsers reject the whole file.) -->
   <rect width="64" height="64" rx="14" fill="#fff"/>
   <path d="M13 28a19 19 0 0 1 38 0v22a5 5 0 0 1-10 0V30H23v20a5 5 0 0 1-10 0Z" fill="#ea580c"/>
   <path d="M26 40h12v22H26z" fill="#fff"/>
