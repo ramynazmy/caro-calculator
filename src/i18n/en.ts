@@ -1,0 +1,193 @@
+/**
+ * English strings. This file is the source of truth for the key list —
+ * `ar.ts` is typed against it, so a missing Arabic translation is a build error.
+ * `{placeholders}` are filled in by `t(key, vars)`.
+ */
+export const en = {
+  'app.title': 'Caro Calculator',
+  'app.tagline': 'Split a restaurant bill fairly',
+  'lang.switch': 'عربي',
+
+  'nav.bill': 'Bill',
+  'nav.people': 'People',
+  'nav.assign': 'Assign',
+  'nav.summary': 'Summary',
+
+  'bill.title': 'Bill name',
+  'bill.titlePlaceholder': 'e.g. Sequoia, Friday dinner',
+  'bill.currency': 'Currency',
+
+  'items.heading': 'Items',
+  'items.count': '{n} items',
+  'items.empty': 'No items yet. Add the first line from your receipt below.',
+  'items.name': 'Item',
+  'items.namePlaceholder': 'e.g. Chicken shawarma',
+  'items.unitPrice': 'Unit price',
+  'items.qty': 'Qty',
+  'items.shared': 'Shared by everyone',
+  'items.sharedHint': 'Nobody claims it — the cost is spread over the whole group',
+  'items.sharedBadge': 'Shared',
+  'items.add': 'Add item',
+  'items.save': 'Save',
+  'items.cancel': 'Cancel',
+  'items.edit': 'Edit',
+  'items.delete': 'Delete',
+  'items.deleteConfirm': 'Delete “{name}”?',
+  'items.each': 'each',
+
+  'charges.heading': 'Discount, service & tax',
+  'charges.discount': 'Discount',
+  'charges.service': 'Service charge',
+  'charges.tax': 'Tax / VAT',
+  'charges.percent': '%',
+  'charges.fixed': 'Amount',
+  'charges.percentValue': 'Percentage',
+  'charges.fixedValue': 'Fixed amount',
+  'charges.taxOnService': 'Tax is charged on the service charge too',
+  'charges.taxOnServiceHint': 'Usual on Egyptian receipts: service first, then VAT on food + service',
+  'charges.off': 'Off',
+
+  'totals.heading': 'Totals',
+  'totals.subtotal': 'Items subtotal',
+  'totals.discount': 'Discount',
+  'totals.service': 'Service',
+  'totals.tax': 'Tax',
+  'totals.calculated': 'Calculated total',
+  'totals.actual': 'Total printed on the receipt',
+  'totals.actualHint': 'Optional — type it in to double-check the entry above',
+  'totals.actualPlaceholder': 'Type the receipt total',
+
+  'mismatch.ok': 'Matches the receipt exactly.',
+  'mismatch.higher': 'The receipt is {amount} MORE than your entry. Something is missing.',
+  'mismatch.lower': 'The receipt is {amount} LESS than your entry. Something is entered twice or priced too high.',
+  'mismatch.fixService': 'Set service to {amount} to match',
+  'mismatch.cantFix': 'Cannot be fixed by changing the service charge alone.',
+  'mismatch.clear': 'Clear',
+
+  'actions.reset': 'Start a new bill',
+  'actions.resetConfirm': 'Delete this bill and start over?',
+
+  'people.heading': 'Participants',
+  'people.empty': 'Nobody added yet. Add everyone who is paying — including yourself.',
+  'people.name': 'Name',
+  'people.namePlaceholder': 'e.g. Caro',
+  'people.partySize': 'People in this entry',
+  'people.partySizeHint': 'Count yourself plus anyone you are paying for',
+  'people.add': 'Add person',
+  'people.entries': '{n} paying',
+  'people.people': '{n} people at the table',
+  'people.personCount': '{n} people',
+  'people.alone': 'just them',
+  'people.organizer': 'Organizer',
+  'people.organizerHint': 'Collects the money, and absorbs any leftover rounding.',
+  'people.makeOrganizer': 'Make organizer',
+  'people.deleteConfirm': 'Remove {name} from this bill?',
+  'people.duplicate': 'Someone is already called that.',
+
+  'split.heading': 'Dividing shared items',
+  'split.perPerson': 'Per person',
+  'split.perEntry': 'Per entry',
+  'split.perPersonHint': 'Split {n} ways by headcount — a family of 3 covers 3 shares.',
+  'split.perEntryHint': 'Split {n} ways by name — everyone pays the same share regardless of party size.',
+  'split.needPeople': 'Add participants first.',
+  'split.example': 'A {amount} shared item would cost {share} per share.',
+
+  // --- Phase 3: assignment mode -------------------------------------------
+  'mode.heading': 'How should items be assigned?',
+  'mode.share': 'Share a link',
+  'mode.shareHint': 'Everyone picks their own food on their own phone.',
+  'mode.assign': 'I’ll assign',
+  'mode.assignHint': 'You tap through the items yourself. Works with no internet.',
+
+  // --- Shared link ---------------------------------------------------------
+  'share.heading': 'Shared link',
+  'share.notConfigured': 'The shared link needs a Firebase project.',
+  'share.notConfiguredHint':
+    'Add your six Firebase keys to a .env file and restart the dev server. Phase 4 of the README walks through it. Until then, use “I’ll assign”.',
+  'share.needItems': 'Add some items on the Bill tab first.',
+  'share.needPeople': 'Add participants on the People tab first.',
+  'share.publish': 'Create the shared link',
+  'share.publishing': 'Creating…',
+  'share.republish': 'Push my latest changes',
+  'share.copy': 'Copy link',
+  'share.copied': 'Copied',
+  'share.whatsapp': 'Send on WhatsApp',
+  'share.inviteText': '{title} — tap here and pick what you had: {url}',
+  'share.status': 'Who has responded',
+  'share.responded': 'Picked',
+  'share.pending': 'Waiting',
+  'share.live': 'Live — updates as people pick',
+  'share.error': 'Could not reach the server. Check your connection and your Firebase keys.',
+  'share.openMine': 'Open my own picking screen',
+
+  // --- Assign (organizer does it) ------------------------------------------
+  'assign.heading': 'Assign items',
+  'assign.noItems': 'No claimable items yet. Add some on the Bill tab.',
+  'assign.allShared': 'Every item is marked shared, so there is nothing to assign.',
+  'assign.sharedNote': 'Shared items are divided automatically — nobody claims them.',
+  'assign.remaining': '{n} left',
+  'assign.allClaimed': 'All claimed',
+  'assign.overClaimed': 'Over-claimed',
+  'assign.needPeople': 'Add participants on the People tab first.',
+
+  // --- Participant claim screen --------------------------------------------
+  'claim.loading': 'Loading the bill…',
+  'claim.notFound': 'This link is not valid, or the bill has been deleted.',
+  'claim.error': 'Could not load the bill. Check your internet connection.',
+  'claim.whoAreYou': 'Who are you?',
+  'claim.notYou': 'Not you?',
+  'claim.heading': 'What did you have?',
+  'claim.nothingToPick': 'Everything on this bill is shared — nothing to pick.',
+  'claim.save': 'Save my picks',
+  'claim.saving': 'Saving…',
+  'claim.saved': 'Saved. You can change this until the organizer locks the bill.',
+  'claim.saveError': 'Could not save. Check your connection and try again.',
+  'claim.locked': 'The organizer has locked this bill. Your picks are final.',
+  'claim.yourShare': 'Your share so far',
+  'claim.noneLeft': 'None left',
+  'claim.sharedNote': 'Shared items are split across everyone — you do not need to pick them.',
+
+  // --- Summary -------------------------------------------------------------
+  'summary.heading': 'Who pays what',
+  'summary.needPeople': 'Add participants on the People tab to see the split.',
+  'summary.needItems': 'Add items on the Bill tab to see the split.',
+  'summary.food': 'Food',
+  'summary.communalShare': 'Share of shared items',
+  'summary.serviceAndTax': 'Service & tax',
+  'summary.total': 'Total',
+  'summary.grandTotal': 'Grand total',
+  'summary.matches': 'Adds up to the bill exactly.',
+  'summary.organizerNote': 'Rounding leftovers go to {name}.',
+  'summary.communalHeading': 'Split across everyone',
+  'summary.sharedBadge': 'Shared',
+  'summary.unclaimedBadge': 'Unclaimed',
+  'summary.unclaimedHint':
+    'Nobody picked these, so they are divided across the group. Assign one to a person instead if it was just forgotten.',
+  'summary.assignTo': 'Give to…',
+  'summary.pending': '{n} still have not picked. Their items count as unclaimed for now.',
+  'summary.overclaim':
+    '“{name}”: {claimed} claimed but only {ordered} ordered. Charges were scaled down to fit — worth sorting out on the Assign tab.',
+  'summary.mismatch':
+    'Your items do not match the printed receipt. These shares add up to {amount} — fix the entry on the Bill tab first.',
+  'summary.copy': 'Copy summary',
+  'summary.copied': 'Copied to clipboard',
+  'summary.copyFailed': 'Could not copy — select the text manually.',
+  'summary.whatsapp': 'Share on WhatsApp',
+  'summary.lock': 'Lock the bill',
+  'summary.unlock': 'Unlock the bill',
+  'summary.lockedNote': 'Locked. Participants can no longer change their picks.',
+
+  // --- Tax & service distribution ------------------------------------------
+  'chargeSplit.heading': 'Dividing tax & service',
+  'chargeSplit.proportional': 'By what you ate',
+  'chargeSplit.equal': 'Equally',
+  'chargeSplit.proportionalHint':
+    'Someone who ate twice as much pays twice the tax and service.',
+  'chargeSplit.equalHint': 'Tax and service divided flat, the same way shared items are.',
+
+  'phase.next': 'Next up: deploying to GitHub Pages (Phase 4)',
+  'phase.savedLocally': 'Saved on this device automatically',
+} as const
+
+export type Dict = { [K in keyof typeof en]: string }
+export type TKey = keyof typeof en

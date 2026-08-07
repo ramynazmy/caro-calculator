@@ -1,0 +1,67 @@
+name: Deploy to GitHub Pages
+
+# Every push to main rebuilds and republishes the site. The manual trigger is
+# there so you can redeploy after changing a secret, without a dummy commit.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# The minimum permissions the official Pages actions need.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race. Queue rather than cancel, so a deploy that is
+# already publishing is allowed to finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # `ci` (not `install`) so the build uses exactly the versions in
+      # package-lock.json and cannot drift.
+      - run: npm ci
+
+      # `npm run build` runs `tsc -b` first, so a type error fails the deploy
+      # instead of shipping a broken site.
+      - run: npm run build
+        env:
+          # Firebase web config. These are injected at build time and end up in
+          # the JavaScript bundle — which is fine, they are public by design.
+          # They live in repo secrets so they can be rotated without a commit.
+          # With the secrets unset the site still builds; it just offers the
+          # offline "I'll assign" mode only.
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

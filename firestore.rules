@@ -1,0 +1,61 @@
+rules_version = '2';
+
+// Security rules for Caro Calculator.
+//
+// The security model, stated plainly: there are no accounts, so **knowing a
+// bill's id is the credential**. Bill ids are 20 random hex characters (80
+// bits), which is not guessable — but anyone you send a link to can read and
+// write that bill, and that is the intended design. Do not put anything in a
+// bill you would not put in the WhatsApp group.
+//
+// What these rules DO enforce:
+//   - you can only touch documents under /bills, nothing else
+//   - a bill must carry an expiry, and cannot claim to live longer than ~100
+//     days, so nobody can plant a permanent document in your project
+//   - documents are size-capped, so nobody can burn your free quota
+//   - nothing can be deleted by a client; only the TTL policy removes data
+//
+// Paste this into: Firebase console -> Firestore Database -> Rules -> Publish
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Every write must set an expiry within the retention window the app uses.
+    function hasValidExpiry() {
+      return request.resource.data.expiresAt is timestamp
+          && request.resource.data.expiresAt > request.time
+          && request.resource.data.expiresAt < request.time + duration.value(100, 'd');
+    }
+
+    match /bills/{billId} {
+      allow read: if true;
+
+      allow create, update: if hasValidExpiry()
+          && request.resource.data.keys().hasAll(['version', 'id', 'items', 'participants'])
+          // A bill cannot be written under someone else's id.
+          && request.resource.data.id == billId
+          && request.resource.data.items.size() <= 200
+          && request.resource.data.participants.size() <= 50;
+
+      // Only the TTL policy removes bills.
+      allow delete: if false;
+
+      // One document per participant, so several phones can save at once
+      // without overwriting each other.
+      match /claims/{participantId} {
+        allow read: if true;
+
+        allow create, update: if hasValidExpiry()
+            && request.resource.data.keys().hasOnly(['items', 'updatedAt', 'expiresAt'])
+            && request.resource.data.items.size() <= 200;
+
+        allow delete: if false;
+      }
+    }
+
+    // Everything else in the project is unreachable.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
