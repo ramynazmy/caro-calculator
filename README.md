@@ -225,6 +225,43 @@ the restaurant is never short-changed. Fuzzed over another 5,000 random bills.
 5. Each person's total is rounded up, if that is switched on, with the surplus
    added to the tip.
 
+### Scanning a receipt
+
+Photograph the bill and the items fill themselves in. Firebase AI Logic brokers
+the call to Gemini, so **no model API key ships in the bundle** — which is what
+normally makes OCR impossible in a static site.
+
+The design rests on one observation: **this app already had the perfect check
+for OCR output.** The Bill tab asks for the total printed on the receipt and
+warns when the items do not add up to it. So the scan extracts the line items
+*and* the printed total; if the model drops a line, the existing cross-check
+says so, with the exact difference, before any money is divided.
+
+That is what makes roughly-85%-accurate extraction genuinely useful. The
+organizer is never asked to trust it — only to glance at a green tick.
+
+Consequences of that, all deliberate:
+
+- **Nothing reaches the bill unreviewed.** Extraction lands on an editable
+  sheet. Rows the model reported low confidence on are visually flagged.
+- **Merges, never replaces** — so a second photo of a long receipt adds to what
+  is there.
+- The photo is **downscaled on-device** (1600px long edge, JPEG) before upload.
+  A raw 12 MP photo is slow on mobile data and buys no accuracy. Re-encoding
+  also quietly solves iPhone HEIC.
+- The photo is **never stored** — sent, read, discarded. It never enters
+  Firestore or the shared bill. A one-time notice says so before the first
+  photo leaves the device.
+- Model ids are a **fallback list, not one pinned string**, because Google
+  retires them on a schedule (Gemini 2.5 shuts down in October 2026). The first
+  one that answers is remembered.
+- The AI SDK is behind a dynamic `import()` — a 16 KB gzipped chunk that a
+  hand-typed bill never downloads.
+
+`src/lib/receipt.ts` — which turns the model's JSON into bill items — is pure,
+with no network code, precisely so it can be tested against hostile input. See
+the `receipt` suite.
+
 ### Installing it as an app
 
 The app is a PWA: on a phone it can be installed to the home screen and then
@@ -301,6 +338,7 @@ readable when something breaks at 1am after a dinner.
 | `totals` | parsing (including Arabic-Indic digits and 3-decimal KWD), formatting, the Egyptian compound-VAT order, discounts, and the receipt-matching solver |
 | `participants` | headcount vs entries, both split bases, and the localStorage schema migrations v1 → v2 → v3 including corrupt input |
 | `shares` | weighted allocation, shared and unclaimed items, over-claim capping, proportional vs equal tax, and **5,000 randomized bills asserting the shares always sum to the bill total** |
+| `receipt` | the model's JSON → bill items: malformed shapes, string prices, negative and absurd values, 500-row responses, plus **3,000 rounds of fuzz asserting no corrupt item can reach the bill** |
 | `tips` | tip bases, the tip staying out of the receipt check, round-up arithmetic per currency, and **5,000 more randomized bills asserting handed-over === bill + tip** |
 
 The deploy workflow runs these before building, so a change that would get
@@ -318,6 +356,9 @@ src/
     allocate.ts          weighted integer division that always sums exactly
     shares.ts            who owes what — the core of Phase 3
     firebase.ts          Firestore sync, lazily loaded
+    receiptScan.ts       the Gemini call, lazily loaded
+    receipt.ts           model JSON -> bill items (pure, heavily tested)
+    image.ts             on-device downscale before upload
     share.ts             WhatsApp text, clipboard
     currencies.ts        supported currencies and their decimal places
     storage.ts           localStorage read/write + schema migrations
@@ -534,7 +575,27 @@ gh workflow run "Deploy to GitHub Pages"
 Or push any commit. Once it is green, open the site → **Assign** tab → the
 *Share a link* panel now offers **Create the shared link**.
 
-### 2.8 And for local development
+### 2.8 Switch on receipt scanning (optional)
+
+Needed only for the **Scan receipt** button. Everything else works without it.
+
+1. Firebase console → left sidebar → **Build → AI Logic** → **Get started**.
+2. Choose the **Gemini Developer API** — the no-cost path. Do **not** link a
+   Cloud Billing account.
+3. Accept the prompt to enable the required API on your project.
+
+That is all — the keys you already set cover it. Reload the app and a
+**📷 Scan receipt** button appears on the Bill tab.
+
+> **Before 2 November 2026:** Firebase App Check becomes *mandatory* for AI
+> Logic. It is also what stops a stranger who finds your public URL from
+> spending your free quota. Set it up under **Build → App Check** with the
+> **reCAPTCHA v3** provider (free), registering `ramynazmy.github.io`.
+
+Free-tier limits, shared across everyone using the site: **1,500 scans/day**
+and 10/minute. One scan per bill, so that is hundreds of dinners a day.
+
+### 2.9 And for local development
 
 ```bash
 cp .env.example .env     # then paste the same six values in
