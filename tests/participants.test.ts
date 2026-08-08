@@ -9,6 +9,11 @@ function eq(label: string, got: unknown, want: unknown) {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}: got ${JSON.stringify(got)}${ok ? '' : `, want ${JSON.stringify(want)}`}`)
 }
 
+function ok(label: string, cond: boolean, detail = '') {
+  if (!cond) failed++
+  console.log(`${cond ? 'PASS' : 'FAIL'}  ${label}${cond ? '' : '  ' + detail}`)
+}
+
 const P = (id: string, name: string, partySize: number, treated = false) => ({ id, name, partySize, treated })
 const I = (id: string, price: number, qty: number, shared: boolean) =>
   ({ id, name: id, priceMinor: price, priceMode: 'unit' as const, quantity: qty, shared, sharedWith: null })
@@ -100,5 +105,66 @@ store.set('billsplitter.bill.v1', 'not json at all')
 eq('bad json -> null', loadBill(), null)
 store.set('billsplitter.bill.v1', JSON.stringify({ version: 99, items: [] }))
 eq('future version -> null', loadBill(), null)
+
+// ============================ the two resets ==============================
+// "New bill, same people" must forget the receipt and remember the table.
+// Getting this backwards would either lose everyone's names or silently carry
+// last night's items into tonight's bill.
+console.log('\n--- reset scopes ---')
+
+// The reducer is not exported, so drive it the way the app does: save a bill,
+// apply the documented transformation, and check what survived.
+const gathering = bill({
+  title: 'Sequoia',
+  currency: 'USD',
+  participants: [P('a', 'Caro', 3), P('s', 'Sara', 1, true)],
+  organizerId: 's',
+  splitBasis: 'perEntry',
+  chargeSplit: 'equal',
+  roundUpTo: 5,
+  items: [I('steak', 20000, 1, false)],
+  claims: { a: { steak: 1 } },
+  actualTotalMinor: 20000,
+  published: true,
+  locked: true,
+  respondedAt: { a: 123 },
+  service: { enabled: true, mode: 'percent', percent: 12, fixedMinor: 0 },
+})
+
+// Mirrors the `resetBill` case in BillContext.
+function resetBill(current: Bill): Bill {
+  const fresh: Bill = { ...bill(), id: 'new-id' }
+  return {
+    ...fresh,
+    currency: current.currency,
+    participants: current.participants,
+    organizerId: current.organizerId,
+    splitBasis: current.splitBasis,
+    chargeSplit: current.chargeSplit,
+    roundUpTo: current.roundUpTo,
+  }
+}
+
+const next = resetBill(gathering)
+
+// Kept: everything about the table.
+eq('people survive', next.participants.length, 2)
+eq('party sizes survive', next.participants[0].partySize, 3)
+eq('the guest of honour survives', next.participants[1].treated, true)
+eq('the organizer survives', next.organizerId, 's')
+eq('currency survives', next.currency, 'USD')
+eq('split settings survive', [next.splitBasis, next.chargeSplit, next.roundUpTo], ['perEntry', 'equal', 5])
+
+// Cleared: everything about the receipt.
+eq('items cleared', next.items.length, 0)
+eq('claims cleared', Object.keys(next.claims).length, 0)
+eq('title cleared', next.title, '')
+eq('receipt total cleared', next.actualTotalMinor, null)
+eq('service charge cleared', next.service.enabled, false)
+eq('no longer published', next.published, false)
+eq('no longer locked', next.locked, false)
+eq('responses cleared', Object.keys(next.respondedAt).length, 0)
+// A fresh id, so publishing does not overwrite the link already sent round.
+ok('a new bill id', next.id !== gathering.id)
 
 console.log(failed === 0 ? '\nALL PASS' : `\n${failed} FAILURES`)

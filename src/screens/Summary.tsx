@@ -332,12 +332,21 @@ export function Summary() {
       <div className="screen__footer">
         <button
           type="button"
-          className="btn btn--ghost btn--danger"
+          className="btn btn--ghost"
           onClick={() => {
-            if (confirm(t('actions.resetConfirm'))) dispatch({ type: 'reset' })
+            if (confirm(t('actions.newBillConfirm'))) dispatch({ type: 'resetBill' })
           }}
         >
-          {t('actions.reset')}
+          {t('actions.newBill')}
+        </button>
+        <button
+          type="button"
+          className="btn btn--ghost btn--danger"
+          onClick={() => {
+            if (confirm(t('actions.newGatheringConfirm'))) dispatch({ type: 'reset' })
+          }}
+        >
+          {t('actions.newGathering')}
         </button>
       </div>
     </div>

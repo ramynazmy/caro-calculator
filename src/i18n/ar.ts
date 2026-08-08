@@ -78,8 +78,11 @@ export const ar: Dict = {
   'mismatch.cantFix': 'لا يمكن ضبطها بتغيير رسوم الخدمة وحدها.',
   'mismatch.clear': 'مسح',
 
-  'actions.reset': 'ابدأ فاتورة جديدة',
-  'actions.resetConfirm': 'حذف هذه الفاتورة والبدء من جديد؟',
+  'actions.newGathering': 'ابدأ لقاءً جديداً',
+  'actions.newGatheringConfirm': 'مسح كل شيء — المشاركين والأصناف والكل — والبدء من جديد؟',
+  'actions.newBill': 'فاتورة جديدة بنفس الأشخاص',
+  'actions.newBillConfirm': 'مسح الأصناف والرسوم مع الإبقاء على المشاركين؟',
+  'actions.newBillHint': 'لمكان ثانٍ، أو محل الحلويات بعدها.',
 
   'people.heading': 'المشاركون',
   'people.empty': 'لم يُضف أحد بعد. أضف كل من سيدفع — وأضف نفسك أيضاً.',

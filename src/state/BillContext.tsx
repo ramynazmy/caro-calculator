@@ -80,6 +80,7 @@ type Action =
   | { type: 'setLocked'; locked: boolean }
   | { type: 'setPublished'; published: boolean }
   | { type: 'reset' }
+  | { type: 'resetBill' }
 
 /**
  * Currencies do not all have two decimal places (KWD has three). Since we
@@ -230,6 +231,25 @@ function reducer(bill: Bill, action: Action): Bill {
     case 'reset':
       clearBill()
       return createEmptyBill()
+
+    case 'resetBill': {
+      // Same gathering, next bill — a second venue, the dessert place after
+      // dinner. Everything about the *receipt* is cleared; everything about
+      // the *people* survives, including party sizes, who the organizer is,
+      // and who is being treated.
+      const fresh = createEmptyBill()
+      return {
+        ...fresh,
+        // A new id, so publishing this bill creates a new link rather than
+        // overwriting the one already sent round for the previous one.
+        currency: bill.currency,
+        participants: bill.participants,
+        organizerId: bill.organizerId,
+        splitBasis: bill.splitBasis,
+        chargeSplit: bill.chargeSplit,
+        roundUpTo: bill.roundUpTo,
+      }
+    }
   }
 }
 

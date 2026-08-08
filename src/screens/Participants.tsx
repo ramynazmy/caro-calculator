@@ -95,6 +95,15 @@ export function Participants() {
 
       <div className="screen__footer">
         <p className="muted">{t('phase.savedLocally')}</p>
+        <button
+          type="button"
+          className="btn btn--ghost btn--danger"
+          onClick={() => {
+            if (confirm(t('actions.newGatheringConfirm'))) dispatch({ type: 'reset' })
+          }}
+        >
+          {t('actions.newGathering')}
+        </button>
       </div>
     </div>
   )

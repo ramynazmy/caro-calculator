@@ -155,15 +155,18 @@ export function BillEntry() {
 
       <div className="screen__footer">
         <p className="muted">{t('phase.savedLocally')}</p>
+        {/* Clears the receipt but keeps the table — the people, their party
+            sizes, the organizer and anyone being treated all survive. */}
         <button
           type="button"
-          className="btn btn--ghost btn--danger"
+          className="btn btn--ghost"
           onClick={() => {
-            if (confirm(t('actions.resetConfirm'))) dispatch({ type: 'reset' })
+            if (confirm(t('actions.newBillConfirm'))) dispatch({ type: 'resetBill' })
           }}
         >
-          {t('actions.reset')}
+          {t('actions.newBill')}
         </button>
+        <p className="muted">{t('actions.newBillHint')}</p>
       </div>
     </div>
   )

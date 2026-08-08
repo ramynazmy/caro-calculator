@@ -80,8 +80,11 @@ export const en = {
   'mismatch.cantFix': 'Cannot be fixed by changing the service charge alone.',
   'mismatch.clear': 'Clear',
 
-  'actions.reset': 'Start a new bill',
-  'actions.resetConfirm': 'Delete this bill and start over?',
+  'actions.newGathering': 'Start a new gathering',
+  'actions.newGatheringConfirm': 'Clear everything — people, items, the lot — and start fresh?',
+  'actions.newBill': 'New bill, same people',
+  'actions.newBillConfirm': 'Clear the items and charges, but keep everyone on the People tab?',
+  'actions.newBillHint': 'For a second venue, or the dessert place afterwards.',
 
   'people.heading': 'Participants',
   'people.empty': 'Nobody added yet. Add everyone who is paying — including yourself.',
