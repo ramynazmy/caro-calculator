@@ -82,6 +82,7 @@ const CONTENT: Record<Lang, { intro: string; sections: Section[] }> = {
         title: 'Assign — two ways',
         body: [
           'Tap any item to say **how it is divided**: *Claimed* (someone picks it), *Everyone* (bread, water, mezze), or *Split between* (two people sharing one pizza — divided equally between just the names you tap).',
+          '**When the units went different ways** — two chickens, one was Ramy’s and the other was split between Koko and Maro — tap **✂ Split into separate lines**. Each line can then be divided on its own. Nothing is lost: the pieces always add back up to what the line cost, and anything already claimed stays claimed.',
           'Then choose how the claiming happens:',
           '**Share a link.** Send it on WhatsApp; everyone opens it, taps their name once, and picks what they had. You watch the responses arrive. Nobody needs an account.',
           '**I’ll assign.** Tap through the items yourself. No internet needed at all — the fallback when the restaurant Wi-Fi is hopeless.',
@@ -183,6 +184,7 @@ const CONTENT: Record<Lang, { intro: string; sections: Section[] }> = {
         title: 'التوزيع — طريقتان',
         body: [
           'اضغط على أي صنف لتحديد **كيف يُقسَّم**: *يختاره أحد*، أو *الجميع* (العيش والمياه والمقبلات)، أو *مقسوم بين* (شخصان يتقاسمان بيتزا — يُقسَّم بالتساوي بين من تختارهم فقط).',
+          '**إذا ذهبت القطع لأشخاص مختلفين** — فرختان، واحدة لرامي والأخرى مقسومة بين كوكو ومارو — اضغط **✂ قسّمه إلى أسطر منفصلة**. عندها يُقسَّم كل سطر بطريقته. ولا يضيع شيء: مجموع القطع يساوي ثمن السطر دائماً، وما تم اختياره يبقى كما هو.',
           'ثم اختر طريقة الاختيار:',
           '**شارك رابطاً.** أرسله على واتساب؛ يفتحه كل شخص، يضغط اسمه مرة واحدة، ويختار ما أكله. وأنت ترى الردود تصل. لا يحتاج أحد لحساب.',
           '**سأوزّع بنفسي.** وزّع الأصناف بنفسك. لا يحتاج إنترنت إطلاقاً — وهو الحل حين تكون شبكة المطعم سيئة.',

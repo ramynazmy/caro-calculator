@@ -145,6 +145,8 @@ export const en = {
   'assign.noItems': 'No claimable items yet. Add some on the Bill tab.',
   'assign.allShared': 'Every item is marked shared, so there is nothing to assign.',
   'assign.sharedNote': 'Shared items are divided automatically — nobody claims them.',
+  'assign.splitLines': 'Split into {n} separate lines',
+  'assign.splitLinesHint': 'For when the units went different ways — one was Ramy’s, the other was shared. Each line can then be divided on its own.',
   'assign.divisionHint': 'Tap an item to say who pays for it.',
   'assign.claimedBy': 'Picked by',
   'assign.nobodyYet': 'Nobody has picked this yet.',

@@ -354,6 +354,21 @@ function DivisionPanel({ mode }: { mode: Mode }) {
                     ))}
                   </div>
 
+                  {/* Only offered when it can help: one line of several,
+                      where different units went to different people. */}
+                  {item.quantity > 1 && (
+                    <div className="assign-item__split">
+                      <button
+                        type="button"
+                        className="btn btn--tiny"
+                        onClick={() => dispatch({ type: 'splitItem', id: item.id })}
+                      >
+                        ✂ {t('assign.splitLines', { n: item.quantity })}
+                      </button>
+                      <p className="field__hint">{t('assign.splitLinesHint')}</p>
+                    </div>
+                  )}
+
                   {sharing === 'everyone' && (
                     <p className="field__hint">{t('items.sharingEveryoneHint')}</p>
                   )}

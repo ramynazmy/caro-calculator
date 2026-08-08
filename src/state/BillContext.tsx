@@ -18,6 +18,8 @@ import type {
 import { DEFAULT_CURRENCY, getCurrency } from '../lib/currencies'
 import { loadBill, saveBill, clearBill } from '../lib/storage'
 import { newBillId, newId } from '../lib/id'
+import { itemTotalMinor } from '../lib/items'
+import { allocate } from '../lib/allocate'
 
 function emptyCharge(defaultPercent: number): Charge {
   return { enabled: false, mode: 'percent', percent: defaultPercent, fixedMinor: 0 }
@@ -64,6 +66,7 @@ type Action =
   | { type: 'addItem'; item: Omit<BillItem, 'id'> }
   | { type: 'updateItem'; id: string; patch: Partial<Omit<BillItem, 'id'>> }
   | { type: 'deleteItem'; id: string }
+  | { type: 'splitItem'; id: string }
   | { type: 'setCharge'; key: ChargeKey; patch: Partial<Charge> }
   | { type: 'setTaxAppliesToService'; value: boolean }
   | { type: 'setActualTotal'; minor: number | null }
@@ -139,6 +142,68 @@ function reducer(bill: Bill, action: Action): Bill {
         claims[participantId] = rest
       }
       return { ...bill, items: bill.items.filter((item) => item.id !== action.id), claims }
+    }
+
+    /**
+     * Break one line of N into N lines of 1, so each can be divided its own
+     * way: "two chickens — one was Ramy's, the other was split between Koko
+     * and Maro".
+     *
+     * The alternative would be fractional claims, which would mean asking a
+     * guest on their phone "how many did you have?" and expecting the answer
+     * 0.5. Splitting the line keeps every quantity a whole number and reuses
+     * maths that is already proven.
+     */
+    case 'splitItem': {
+      const index = bill.items.findIndex((item) => item.id === action.id)
+      if (index === -1) return bill
+      const item = bill.items[index]
+      if (item.quantity <= 1) return bill
+
+      const count = item.quantity
+      const pieces: BillItem[] =
+        item.priceMode === 'unit'
+          ? // Each piece simply carries the same unit price.
+            Array.from({ length: count }, () => ({
+              id: newId(),
+              name: item.name,
+              priceMinor: item.priceMinor,
+              priceMode: 'unit' as const,
+              quantity: 1,
+              shared: item.shared,
+              sharedWith: item.sharedWith,
+            }))
+          : // A line total has to be divided, and 100.00 across 3 does not
+            // divide evenly — so it goes through `allocate` like everything
+            // else and the pieces still sum to the printed figure.
+            allocate(itemTotalMinor(item), new Array(count).fill(1), 0).map((amount) => ({
+              id: newId(),
+              name: item.name,
+              priceMinor: amount,
+              priceMode: 'line' as const,
+              quantity: 1,
+              shared: item.shared,
+              sharedWith: item.sharedWith,
+            }))
+
+      // Re-home whatever was already claimed: hand out the new lines in turn,
+      // so someone who had claimed 2 of 3 ends up holding two of the pieces.
+      const claims: Claims = {}
+      for (const [participantId, byItem] of Object.entries(bill.claims)) {
+        const { [action.id]: _removed, ...rest } = byItem
+        claims[participantId] = rest
+      }
+      let piece = 0
+      for (const [participantId, byItem] of Object.entries(bill.claims)) {
+        const held = byItem[action.id] ?? 0
+        for (let k = 0; k < held && piece < count; k++, piece++) {
+          claims[participantId] = { ...claims[participantId], [pieces[piece].id]: 1 }
+        }
+      }
+
+      const items = [...bill.items]
+      items.splice(index, 1, ...pieces)
+      return { ...bill, items, claims }
     }
 
     case 'setCharge':

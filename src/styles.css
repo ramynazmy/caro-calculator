@@ -1584,3 +1584,15 @@ select.input {
   font-weight: 700;
   color: var(--text);
 }
+
+.assign-item__split {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-block: 8px;
+  border-top: 1px dashed var(--border);
+}
+
+.assign-item__split .btn {
+  align-self: flex-start;
+}
