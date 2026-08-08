@@ -52,10 +52,9 @@ const CONTENT: Record<Lang, { intro: string; sections: Section[] }> = {
         icon: '🧾',
         title: 'Bill',
         body: [
-          'Add each line from the receipt. For every item you choose two things:',
+          'Add each line from the receipt. This tab is only about what the receipt says — who pays for what is decided on **Assign**.',
           [
             '**Price of one** or **Line total** — receipts print either. If it says *"3 Tea  100.00"*, choose **Line total** and type 100.00. Never divide it yourself; the app handles the fact that 100 does not split evenly into three.',
-            '**How it is divided** — *Claimed* (someone picks it), *Everyone* (bread, water, mezze), or *Split between* (two people sharing one pizza — divided equally between just the names you tap).',
           ],
           '**Discount, service, tax and tip** each take either a percentage or a fixed amount. In Egypt, service is usually charged on the food and VAT on food + service — the checkbox under Tax handles that, and it is on by default.',
           'The **tip / delivery** line sits on top of the printed bill, not inside it, so it never interferes with the check below.',
@@ -82,6 +81,8 @@ const CONTENT: Record<Lang, { intro: string; sections: Section[] }> = {
         icon: '🔗',
         title: 'Assign — two ways',
         body: [
+          'Tap any item to say **how it is divided**: *Claimed* (someone picks it), *Everyone* (bread, water, mezze), or *Split between* (two people sharing one pizza — divided equally between just the names you tap).',
+          'Then choose how the claiming happens:',
           '**Share a link.** Send it on WhatsApp; everyone opens it, taps their name once, and picks what they had. You watch the responses arrive. Nobody needs an account.',
           '**I’ll assign.** Tap through the items yourself. No internet needed at all — the fallback when the restaurant Wi-Fi is hopeless.',
           'Either way, quantities are capped at what was actually ordered, so the group cannot between them claim four of three steaks.',
@@ -152,10 +153,9 @@ const CONTENT: Record<Lang, { intro: string; sections: Section[] }> = {
         icon: '🧾',
         title: 'الفاتورة',
         body: [
-          'أضف كل سطر من الفاتورة. لكل صنف تختار أمرين:',
+          'أضف كل سطر من الفاتورة. هذا التبويب عن محتوى الفاتورة فقط — أما من يدفع ثمن ماذا فيُحدَّد في تبويب **التوزيع**.',
           [
             '**سعر الواحد** أو **إجمالي السطر** — الفواتير تطبع أحدهما. إذا كُتب *«٣ شاي ١٠٠٫٠٠»* فاختر **إجمالي السطر** واكتب ١٠٠٫٠٠. لا تقسّم بنفسك؛ التطبيق يتولّى أن ١٠٠ لا تنقسم على ٣ بالتساوي.',
-            '**كيف يُقسَّم** — *يختاره أحد*، أو *الجميع* (العيش والمياه والمقبلات)، أو *مقسوم بين* (شخصان يتقاسمان بيتزا — يُقسَّم بالتساوي بين من تختارهم فقط).',
           ],
           '**الخصم والخدمة والضريبة والبقشيش** يقبل كل منها نسبة مئوية أو مبلغاً ثابتاً. في مصر تُحسب الخدمة على الطعام ثم الضريبة على الطعام + الخدمة — وهذا ما يفعله المربّع أسفل الضريبة، وهو مفعّل افتراضياً.',
           'سطر **البقشيش / التوصيل** فوق الفاتورة المطبوعة وليس داخلها، حتى لا يؤثر على المراجعة أدناه.',
@@ -182,6 +182,8 @@ const CONTENT: Record<Lang, { intro: string; sections: Section[] }> = {
         icon: '🔗',
         title: 'التوزيع — طريقتان',
         body: [
+          'اضغط على أي صنف لتحديد **كيف يُقسَّم**: *يختاره أحد*، أو *الجميع* (العيش والمياه والمقبلات)، أو *مقسوم بين* (شخصان يتقاسمان بيتزا — يُقسَّم بالتساوي بين من تختارهم فقط).',
+          'ثم اختر طريقة الاختيار:',
           '**شارك رابطاً.** أرسله على واتساب؛ يفتحه كل شخص، يضغط اسمه مرة واحدة، ويختار ما أكله. وأنت ترى الردود تصل. لا يحتاج أحد لحساب.',
           '**سأوزّع بنفسي.** وزّع الأصناف بنفسك. لا يحتاج إنترنت إطلاقاً — وهو الحل حين تكون شبكة المطعم سيئة.',
           'في الحالتين، الكميات محدودة بما طُلب فعلاً، فلا يمكن للمجموعة اختيار أربع قطع من ثلاث.',

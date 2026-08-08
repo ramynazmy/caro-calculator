@@ -67,13 +67,11 @@ export function BillEntry() {
 
         <ItemForm
           currency={bill.currency}
-          participants={bill.participants}
           onSubmit={(draft) => dispatch({ type: 'addItem', item: draft })}
         />
 
         <ItemList
           items={bill.items}
-          participants={bill.participants}
           currency={bill.currency}
           onUpdate={(id, patch) => dispatch({ type: 'updateItem', id, patch })}
           onDelete={(id) => dispatch({ type: 'deleteItem', id })}

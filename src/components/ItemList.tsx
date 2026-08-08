@@ -1,6 +1,6 @@
 /** The running list of entered items, with inline edit and delete. */
 import { useState } from 'react'
-import type { BillItem, Participant } from '../types'
+import type { BillItem } from '../types'
 import { formatMoney } from '../lib/money'
 import { itemTotalMinor, unitPriceDisplayMinor } from '../lib/items'
 import { useI18n } from '../i18n'
@@ -9,13 +9,12 @@ import type { ItemDraft } from './ItemForm'
 
 interface Props {
   items: BillItem[]
-  participants: Participant[]
   currency: string
   onUpdate: (id: string, patch: ItemDraft) => void
   onDelete: (id: string) => void
 }
 
-export function ItemList({ items, participants, currency, onUpdate, onDelete }: Props) {
+export function ItemList({ items, currency, onUpdate, onDelete }: Props) {
   const { t, lang } = useI18n()
   const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -30,7 +29,6 @@ export function ItemList({ items, participants, currency, onUpdate, onDelete }: 
           <li key={item.id} className="item-list__editing">
             <ItemForm
               currency={currency}
-              participants={participants}
               initial={item}
               onCancel={() => setEditingId(null)}
               onSubmit={(draft) => {
