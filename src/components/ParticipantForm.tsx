@@ -31,7 +31,7 @@ export function ParticipantForm({ existing, onSubmit }: Props) {
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!isValid) return
-    onSubmit({ name: trimmed, partySize })
+    onSubmit({ name: trimmed, partySize, treated: false })
     setName('')
     setPartySize(1)
   }

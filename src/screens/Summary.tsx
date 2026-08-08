@@ -95,6 +95,7 @@ export function Summary() {
                   {share.name}
                   {share.partySize > 1 && <span className="chip">×{share.partySize}</span>}
                   {share.isOrganizer && <span className="badge">⭐</span>}
+                  {share.isTreated && <span className="chip">🎂 {t('people.treated')}</span>}
                 </span>
                 <span className="share-card__total">{money(share.totalMinor)}</span>
               </div>

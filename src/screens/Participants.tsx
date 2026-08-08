@@ -42,7 +42,12 @@ export function Participants() {
           onSetOrganizer={(id) => dispatch({ type: 'setOrganizer', id })}
         />
 
-        {hasPeople && <p className="field__hint">⭐ {t('people.organizerHint')}</p>}
+        {hasPeople && (
+          <>
+            <p className="field__hint">⭐ {t('people.organizerHint')}</p>
+            <p className="field__hint">🎂 {t('people.treatedHint')}</p>
+          </>
+        )}
       </section>
 
       {/* ---- How shared costs get divided --------------------------------- */}

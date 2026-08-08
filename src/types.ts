@@ -80,6 +80,18 @@ export interface Participant {
   name: string
   /** How many humans this entry covers (Caro + two guests = 3). */
   partySize: number
+  /**
+   * The guest of honour — a birthday, a leaving do, someone being treated.
+   *
+   * They pay nothing. Whatever they ate, plus the share of the shared items,
+   * service and tax that would have been theirs, is redistributed across
+   * everybody else. Their card still lists what they had, at zero, so the
+   * table can see they were included rather than left out.
+   *
+   * Ignored if *everyone* is marked as treated, since then nobody would be
+   * paying the bill.
+   */
+  treated: boolean
 }
 
 /**
@@ -112,7 +124,7 @@ export type Claims = Record<string, Record<string, number>>
 
 export interface Bill {
   /** Schema version, so old saved bills can be migrated instead of crashing. */
-  version: 5
+  version: 6
   /** Doubles as the Firestore document id, so it is also the share link. */
   id: string
   /** Optional label, e.g. "Sequoia, Friday". */

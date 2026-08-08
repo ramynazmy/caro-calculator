@@ -13,11 +13,14 @@ export type Route =
   | { name: 'organizer' }
   /** A participant opening a share link: #/b/<billId> */
   | { name: 'claim'; billId: string }
+  /** The instructions page: #/help */
+  | { name: 'help' }
 
 function parse(hash: string): Route {
   const path = hash.replace(/^#\/?/, '')
   const [section, value] = path.split('/')
   if (section === 'b' && value) return { name: 'claim', billId: value }
+  if (section === 'help') return { name: 'help' }
   return { name: 'organizer' }
 }
 

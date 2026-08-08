@@ -38,7 +38,7 @@ for (let total = 0; total <= 300; total++) {
 ok('sums exactly for every total 0..300 (7 uneven weights)', allocOk)
 
 // ============================ fixtures ====================================
-const P = (id: string, name: string, partySize = 1) => ({ id, name, partySize })
+const P = (id: string, name: string, partySize = 1, treated = false) => ({ id, name, partySize, treated })
 const I = (id: string, price: number, qty = 1, shared = false): BillItem =>
   ({ id, name: id, priceMinor: price, priceMode: 'unit', quantity: qty, shared, sharedWith: null })
 /** An item whose printed figure is the total for the whole line. */
@@ -50,7 +50,7 @@ const G = (id: string, price: number, ids: string[]): BillItem =>
 
 function bill(over: Partial<Bill> = {}): Bill {
   return {
-    version: 5, id: 'b', title: 'T', currency: 'EGP', createdAt: 0,
+    version: 6, id: 'b', title: 'T', currency: 'EGP', createdAt: 0,
     items: [], taxAppliesToService: true, actualTotalMinor: null,
     discount: { enabled: false, mode: 'percent', percent: 0, fixedMinor: 0 },
     service: { enabled: false, mode: 'percent', percent: 12, fixedMinor: 0 },

@@ -7,6 +7,7 @@ import { Participants } from './screens/Participants'
 import { Assign } from './screens/Assign'
 import { Summary } from './screens/Summary'
 import { ParticipantClaim } from './screens/ParticipantClaim'
+import { Help } from './screens/Help'
 import { totalHeadcount } from './lib/calc'
 import { GirlLogo } from './components/GirlLogo'
 import { InstallButton } from './components/InstallButton'
@@ -19,6 +20,7 @@ export default function App() {
   // A shared link opens a completely separate screen with its own state — a
   // participant must never see or touch the organizer's local bill.
   if (route.name === 'claim') return <ParticipantClaim billId={route.billId} />
+  if (route.name === 'help') return <Help />
 
   return <OrganizerApp />
 }
@@ -26,12 +28,15 @@ export default function App() {
 function OrganizerApp() {
   const { t, toggleLang } = useI18n()
   const { bill } = useBill()
-  const [tab, setTab] = useState<Tab>('bill')
+  // People first: the Bill tab's "split between these people" option is
+  // unusable until participants exist, so asking for them first avoids a
+  // dead end.
+  const [tab, setTab] = useState<Tab>('people')
 
   const headcount = totalHeadcount(bill)
   const tabs: { id: Tab; label: string; count?: number }[] = [
-    { id: 'bill', label: t('nav.bill'), count: bill.items.length },
     { id: 'people', label: t('nav.people'), count: headcount },
+    { id: 'bill', label: t('nav.bill'), count: bill.items.length },
     { id: 'assign', label: t('nav.assign') },
     { id: 'summary', label: t('nav.summary') },
   ]
@@ -45,6 +50,9 @@ function OrganizerApp() {
           <p className="appbar__tagline">{t('app.tagline')}</p>
         </div>
         <InstallButton />
+        <a className="btn btn--ghost btn--small" href="#/help" aria-label={t('help.title')}>
+          ?
+        </a>
         <button type="button" className="btn btn--ghost btn--small" onClick={toggleLang}>
           {t('lang.switch')}
         </button>

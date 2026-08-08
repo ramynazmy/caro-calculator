@@ -13,7 +13,7 @@ function ok(label: string, cond: boolean, detail = '') {
   console.log(`${cond ? 'PASS' : 'FAIL'}  ${label}${cond ? '' : '  ' + detail}`)
 }
 
-const P = (id: string, name: string, partySize = 1) => ({ id, name, partySize })
+const P = (id: string, name: string, partySize = 1, treated = false) => ({ id, name, partySize, treated })
 const I = (id: string, price: number, qty = 1, shared = false): BillItem =>
   ({ id, name: id, priceMinor: price, priceMode: 'unit', quantity: qty, shared, sharedWith: null })
 /** An item whose printed figure is the total for the whole line. */
@@ -26,7 +26,7 @@ const off = { enabled: false, mode: 'percent' as const, percent: 0, fixedMinor: 
 
 function bill(over: Partial<Bill> = {}): Bill {
   return {
-    version: 5, id: 'b', title: 'T', currency: 'EGP', createdAt: 0,
+    version: 6, id: 'b', title: 'T', currency: 'EGP', createdAt: 0,
     items: [], taxAppliesToService: true, actualTotalMinor: null,
     discount: off, service: off, tax: off, tips: off, roundUpTo: 0,
     participants: [], organizerId: null, splitBasis: 'perPerson',

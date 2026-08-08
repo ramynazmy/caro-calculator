@@ -49,6 +49,8 @@ export interface ParticipantShare {
   roundUpMinor: number
   /** What they actually hand over — `subtotalMinor + roundUpMinor`. */
   totalMinor: number
+  /** Guest of honour: pays nothing, and their share fell to everyone else. */
+  isTreated: boolean
   /** Has this person saved anything through the share link? */
   hasResponded: boolean
 }
@@ -138,6 +140,17 @@ export function computeShares(bill: Bill): SplitResult {
   // nominated", in which case `allocate` uses largest-remainder instead.
   const organizerIndex = people.findIndex((p) => p.id === bill.organizerId)
 
+  // Guests of honour pay nothing; everything that would have been theirs falls
+  // to the others. Implemented purely as a zero weight, so it composes with
+  // every other setting rather than being a special case in five places.
+  //
+  // If EVERYONE is marked treated the flag is ignored: somebody has to pay the
+  // restaurant, and silently producing a table of zeroes would be worse than
+  // ignoring a setting that cannot mean anything.
+  const everyoneTreated = people.length > 0 && people.every((p) => p.treated)
+  const treated = people.map((p) => p.treated && !everyoneTreated)
+  const paysFor = (i: number) => !treated[i]
+
   if (n === 0) {
     return {
       totals,
@@ -169,21 +182,29 @@ export function computeShares(bill: Bill): SplitResult {
         // between the names picked, not by headcount: when you explicitly say
         // "Caro and Sara are splitting this", you mean half each, and it would
         // be a surprise for Caro's party size to make it three-quarters.
-        const weights = people.map((p) => (group.includes(p.id) ? 1 : 0))
-        const perPerson = allocate(itemTotal, weights, organizerIndex)
+        const inGroup = people.map((p) => group.includes(p.id))
+        const payers = people.map((_, i) => inGroup[i] && paysFor(i))
 
-        for (let i = 0; i < n; i++) {
-          if (weights[i] === 0) continue
-          personalMinor[i] += perPerson[i]
-          lines[i].push({
-            itemId: item.id,
-            name: item.name,
-            quantity: item.quantity,
-            amountMinor: perPerson[i],
-            sharedWays: group.length,
-          })
+        if (payers.some(Boolean)) {
+          const weights = payers.map((isPayer) => (isPayer ? 1 : 0))
+          const perPerson = allocate(itemTotal, weights, organizerIndex)
+          const ways = weights.filter(Boolean).length
+
+          for (let i = 0; i < n; i++) {
+            if (!inGroup[i]) continue
+            personalMinor[i] += perPerson[i]
+            lines[i].push({
+              itemId: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              // A treated member still sees the line, at zero.
+              amountMinor: payers[i] ? perPerson[i] : 0,
+              sharedWays: ways,
+            })
+          }
+          continue
         }
-        continue
+        // Everyone named is a guest of honour, so it falls to the whole table.
       }
 
       // Shared with the whole table; the entire line is communal.
@@ -213,14 +234,22 @@ export function computeShares(bill: Bill): SplitResult {
     }
 
     const unclaimedQty = Math.max(0, item.quantity - claimedTotal)
+    // What a guest of honour picked is not charged to them — it joins the
+    // pool the payers divide, exactly like an unclaimed portion.
+    const treatedQty = claimedPerPerson.reduce(
+      (sum, qty, i) => (paysFor(i) ? sum : sum + qty),
+      0,
+    )
 
-    // Divide the LINE TOTAL between the claimers and an "unclaimed" bucket,
-    // weighted by quantity. Doing it this way rather than multiplying a unit
-    // price means a line total that does not divide evenly — 100.00 across 3
-    // teas — still adds back up to exactly 100.00. It also caps an over-claim
-    // for free: when more is claimed than exists, `unclaimedQty` is 0 and the
-    // claimers simply share the whole line.
-    const weights = [...claimedPerPerson, unclaimedQty]
+    // Divide the LINE TOTAL between the paying claimers and a "goes to the
+    // group" bucket, weighted by quantity. Doing it this way rather than
+    // multiplying a unit price means a line total that does not divide evenly
+    // — 100.00 across 3 teas — still adds back up to exactly 100.00. It also
+    // caps an over-claim for free: when more is claimed than exists,
+    // `unclaimedQty` is 0 and the claimers simply share the whole line.
+    const payerQuantities = claimedPerPerson.map((qty, i) => (paysFor(i) ? qty : 0))
+    const toGroupQty = unclaimedQty + treatedQty
+    const weights = [...payerQuantities, toGroupQty]
     const split = allocate(itemTotal, weights, organizerIndex)
 
     for (let i = 0; i < n; i++) {
@@ -230,17 +259,20 @@ export function computeShares(bill: Bill): SplitResult {
         itemId: item.id,
         name: item.name,
         quantity: claimedPerPerson[i],
-        amountMinor: split[i],
+        // The guest of honour still sees what they had, at zero.
+        amountMinor: paysFor(i) ? split[i] : 0,
       })
     }
 
-    if (unclaimedQty > 0) {
+    if (toGroupQty > 0) {
       communal.push({
         itemId: item.id,
         name: item.name,
-        quantity: unclaimedQty,
+        quantity: toGroupQty,
         amountMinor: split[n],
-        isShared: false,
+        // Treated-but-claimed portions are not "nobody wanted it", so they are
+        // not flagged as unclaimed for the organizer to chase.
+        isShared: unclaimedQty === 0,
       })
     }
   }
@@ -248,8 +280,11 @@ export function computeShares(bill: Bill): SplitResult {
   // --- 2. Communal costs: shared items + whatever nobody claimed ------------
   const communalTotalMinor = communal.reduce((sum, line) => sum + line.amountMinor, 0)
 
-  // Per head, or per name, depending on the Phase 2 setting.
-  const headWeights = people.map((p) => (bill.splitBasis === 'perPerson' ? p.partySize : 1))
+  // Per head, or per name, depending on the Phase 2 setting — and zero for a
+  // guest of honour, which is what makes their share fall to everyone else.
+  const headWeights = people.map((p, i) =>
+    !paysFor(i) ? 0 : bill.splitBasis === 'perPerson' ? p.partySize : 1,
+  )
   const communalPerPerson = allocate(communalTotalMinor, headWeights, organizerIndex)
 
   const foodMinor = personalMinor.map((personal, i) => personal + communalPerPerson[i])
@@ -293,6 +328,7 @@ export function computeShares(bill: Bill): SplitResult {
     subtotalMinor: subtotalMinor[i],
     roundUpMinor: roundUpPerPerson[i],
     totalMinor: subtotalMinor[i] + roundUpPerPerson[i],
+    isTreated: treated[i],
     hasResponded: bill.respondedAt[person.id] !== undefined,
   }))
 

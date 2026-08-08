@@ -4,7 +4,7 @@ import type { Bill } from '../types'
 
 const BILL_STORAGE_KEY = 'billsplitter.bill.v1'
 
-const CURRENT_VERSION = 5
+const CURRENT_VERSION = 6
 
 /**
  * Bring an older saved bill up to the current schema, one step at a time.
@@ -67,6 +67,17 @@ function migrate(raw: unknown): Bill | null {
         priceMode: 'unit',
         sharedWith: null,
       })),
+    }
+  }
+
+  if (bill.version === 5) {
+    // v5 -> v6: a participant can be the guest of honour and pay nothing.
+    // Nobody is, by default, so no existing bill's numbers change.
+    const participants = Array.isArray(bill.participants) ? bill.participants : []
+    bill = {
+      ...bill,
+      version: 6,
+      participants: participants.map((p: Record<string, unknown>) => ({ ...p, treated: false })),
     }
   }
 

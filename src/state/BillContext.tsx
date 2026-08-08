@@ -25,7 +25,7 @@ function emptyCharge(defaultPercent: number): Charge {
 
 export function createEmptyBill(): Bill {
   return {
-    version: 5,
+    version: 6,
     id: newBillId(),
     title: '',
     currency: DEFAULT_CURRENCY,

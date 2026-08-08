@@ -11,7 +11,7 @@ function eq(label: string, got: unknown, want: unknown) {
 
 function bill(over: Partial<Bill> = {}): Bill {
   return {
-    version: 5, id: 'x', title: '', currency: 'EGP', createdAt: 0,
+    version: 6, id: 'x', title: '', currency: 'EGP', createdAt: 0,
     items: [], participants: [], actualTotalMinor: null, taxAppliesToService: true,
     organizerId: null, splitBasis: 'perPerson', chargeSplit: 'proportional',
     claims: {}, locked: false, respondedAt: {}, published: false,

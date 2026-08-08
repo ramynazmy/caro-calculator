@@ -65,6 +65,7 @@ export function ParticipantList({
                 <div className="person__name">
                   {person.name}
                   {isOrganizer && <span className="badge">⭐ {t('people.organizer')}</span>}
+                  {person.treated && <span className="chip">🎂 {t('people.treated')}</span>}
                 </div>
               )}
 
@@ -108,15 +109,29 @@ export function ParticipantList({
                 </span>
               </div>
 
-              {!isOrganizer && (
-                <button
-                  type="button"
-                  className="btn btn--tiny"
-                  onClick={() => onSetOrganizer(person.id)}
-                >
-                  {t('people.makeOrganizer')}
-                </button>
-              )}
+              <div className="person__toggles">
+                <label className="switch switch--small">
+                  <input
+                    type="checkbox"
+                    checked={person.treated}
+                    onChange={(e) => onUpdate(person.id, { treated: e.target.checked })}
+                  />
+                  <span className="switch__track" aria-hidden="true">
+                    <span className="switch__thumb" />
+                  </span>
+                  <span className="person__toggle-label">🎂 {t('people.treated')}</span>
+                </label>
+
+                {!isOrganizer && (
+                  <button
+                    type="button"
+                    className="btn btn--tiny"
+                    onClick={() => onSetOrganizer(person.id)}
+                  >
+                    {t('people.makeOrganizer')}
+                  </button>
+                )}
+              </div>
             </div>
           </li>
         )

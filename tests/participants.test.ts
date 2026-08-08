@@ -9,13 +9,13 @@ function eq(label: string, got: unknown, want: unknown) {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}: got ${JSON.stringify(got)}${ok ? '' : `, want ${JSON.stringify(want)}`}`)
 }
 
-const P = (id: string, name: string, partySize: number) => ({ id, name, partySize })
+const P = (id: string, name: string, partySize: number, treated = false) => ({ id, name, partySize, treated })
 const I = (id: string, price: number, qty: number, shared: boolean) =>
   ({ id, name: id, priceMinor: price, priceMode: 'unit' as const, quantity: qty, shared, sharedWith: null })
 
 function bill(over: Partial<Bill> = {}): Bill {
   return {
-    version: 5, id: 'b', title: '', currency: 'EGP', createdAt: 0,
+    version: 6, id: 'b', title: '', currency: 'EGP', createdAt: 0,
     items: [], taxAppliesToService: true, actualTotalMinor: null,
     chargeSplit: 'proportional', claims: {}, locked: false,
     respondedAt: {}, published: false,
@@ -79,7 +79,7 @@ const migrated = loadBill()
 eq('v1 bill survives upgrade', migrated?.title, 'Old bill')
 eq('v1 items preserved', migrated?.items.length, 1)
 eq('v1 service preserved', migrated?.service.percent, 12)
-eq('v1 migrated all the way to v5', migrated?.version, 5)
+eq('v1 migrated all the way to v6', migrated?.version, 6)
 eq('v3 fields defaulted', [migrated?.chargeSplit, migrated?.locked, migrated?.published], ['proportional', false, false])
 eq('v4 fields defaulted (tips off, no rounding)', [migrated?.tips.enabled, migrated?.roundUpTo], [false, 0])
 eq('v5: items relabelled without changing the numbers', [migrated?.items[0].priceMinor, migrated?.items[0].priceMode, migrated?.items[0].sharedWith], [5000, 'unit', null])
