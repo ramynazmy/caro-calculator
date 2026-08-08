@@ -33,6 +33,22 @@ export const en = {
   'items.edit': 'Edit',
   'items.delete': 'Delete',
   'items.deleteConfirm': 'Delete “{name}”?',
+  'items.priceMode': 'What the price means',
+  'items.priceUnit': 'Price of one',
+  'items.priceLine': 'Line total',
+  'items.lineTotal': 'Total for the line',
+  'items.fromLineTotal': 'from line total',
+  'items.sharingLabel': 'How is it divided?',
+  'items.sharingClaim': 'Claimed',
+  'items.sharingClaimHint': 'People pick it themselves, or you assign it.',
+  'items.sharingEveryone': 'Everyone',
+  'items.sharingEveryoneHint': 'Split across the whole table — bread, water, mezze.',
+  'items.sharingGroup': 'Split between',
+  'items.sharingGroupHint': 'Divided equally between just the people you pick.',
+  'items.sharingNeedPeople': 'Add participants on the People tab first.',
+  'items.sharingPickSomeone': 'Pick at least one person.',
+  'items.splitBadge': 'Split {n} ways',
+  'summary.splitWays': 'split {n} ways',
   'items.each': 'each',
 
   'charges.heading': 'Discount, service & tax',
@@ -178,17 +194,17 @@ export const en = {
   'summary.lockedNote': 'Locked. Participants can no longer change their picks.',
 
   // --- Tax & service distribution ------------------------------------------
-  'chargeSplit.heading': 'Dividing tax & service',
+  'chargeSplit.heading': 'Dividing tax, service & tip',
   'chargeSplit.proportional': 'By what you ate',
   'chargeSplit.equal': 'Equally',
   'chargeSplit.proportionalHint':
     'Someone who ate twice as much pays twice the tax and service.',
   'chargeSplit.equalHint': 'Tax and service divided flat, the same way shared items are.',
 
-  'charges.tips': 'Tip',
-  'charges.tipsHint': 'On top of the printed bill. Percentages are of the food, after any discount.',
+  'charges.tips': 'Tip / delivery',
+  'charges.tipsHint': 'For a tip, a delivery fee, or anything else on top of the printed bill. Percentages are of the food, after any discount.',
 
-  'totals.tips': 'Tip',
+  'totals.tips': 'Tip / delivery',
   'totals.payable': 'Total to hand over',
 
   'roundup.heading': 'Rounding each share up',
@@ -196,13 +212,13 @@ export const en = {
   'roundup.to': 'To {n}',
   'roundup.hint': 'Every person’s share is rounded up to a whole {amount}. The extra goes to the tip — nobody keeps it.',
   'roundup.offHint': 'Everyone pays their exact share, to the piastre.',
-  'roundup.collected': 'Rounding adds {amount} to the tip.',
+  'roundup.collected': 'Rounding adds {amount} to the tip / delivery.',
 
   'summary.roundUp': 'Rounded up',
-  'summary.tipShare': 'Tip',
+  'summary.tipShare': 'Tip / delivery',
   'summary.billTotal': 'Bill',
-  'summary.tipsTotal': 'Tip (incl. rounding)',
-  'summary.matchesWithTip': 'Bill covered exactly, plus {amount} tip.',
+  'summary.tipsTotal': 'Tip / delivery (incl. rounding)',
+  'summary.matchesWithTip': 'Bill covered exactly, plus {amount} on top.',
 
   'install.button': 'Install app',
   'install.ios': 'To install: tap Share, then “Add to Home Screen”.',

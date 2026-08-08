@@ -8,6 +8,7 @@
 
 import type { Bill, BillItem } from '../types'
 import { ceilToMultiple, computeTotals, roundUpStepMinor } from './calc'
+import { itemTotalMinor, sharedGroup } from './items'
 import type { BillTotals } from './calc'
 import { allocate } from './allocate'
 
@@ -17,6 +18,8 @@ export interface ShareLine {
   name: string
   quantity: number
   amountMinor: number
+  /** Set when this line was split between named people, e.g. 2 = "half each". */
+  sharedWays?: number
 }
 
 export interface ParticipantShare {
@@ -156,19 +159,41 @@ export function computeShares(bill: Bill): SplitResult {
   const overclaims: OverclaimLine[] = []
 
   for (const item of bill.items) {
-    const itemTotal = item.unitPriceMinor * item.quantity
+    const itemTotal = itemTotalMinor(item)
 
     if (item.shared) {
-      // Shared items are never claimable; the whole line is communal.
-      if (itemTotal > 0 || item.quantity > 0) {
-        communal.push({
-          itemId: item.id,
-          name: item.name,
-          quantity: item.quantity,
-          amountMinor: itemTotal,
-          isShared: true,
-        })
+      const group = sharedGroup(item, people)
+
+      if (group.length > 0) {
+        // Split between named people — "we two split a pizza". Divided equally
+        // between the names picked, not by headcount: when you explicitly say
+        // "Caro and Sara are splitting this", you mean half each, and it would
+        // be a surprise for Caro's party size to make it three-quarters.
+        const weights = people.map((p) => (group.includes(p.id) ? 1 : 0))
+        const perPerson = allocate(itemTotal, weights, organizerIndex)
+
+        for (let i = 0; i < n; i++) {
+          if (weights[i] === 0) continue
+          personalMinor[i] += perPerson[i]
+          lines[i].push({
+            itemId: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            amountMinor: perPerson[i],
+            sharedWays: group.length,
+          })
+        }
+        continue
       }
+
+      // Shared with the whole table; the entire line is communal.
+      communal.push({
+        itemId: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        amountMinor: itemTotal,
+        isShared: true,
+      })
       continue
     }
 
@@ -187,29 +212,34 @@ export function computeShares(bill: Bill): SplitResult {
       })
     }
 
-    // Cost actually covered by claimers. Capped at the whole line, so an
-    // over-claim can never bill more than was ordered.
-    const claimedCost = Math.min(claimedTotal, item.quantity) * item.unitPriceMinor
-    const perPerson = allocate(claimedCost, claimedPerPerson, organizerIndex)
+    const unclaimedQty = Math.max(0, item.quantity - claimedTotal)
+
+    // Divide the LINE TOTAL between the claimers and an "unclaimed" bucket,
+    // weighted by quantity. Doing it this way rather than multiplying a unit
+    // price means a line total that does not divide evenly — 100.00 across 3
+    // teas — still adds back up to exactly 100.00. It also caps an over-claim
+    // for free: when more is claimed than exists, `unclaimedQty` is 0 and the
+    // claimers simply share the whole line.
+    const weights = [...claimedPerPerson, unclaimedQty]
+    const split = allocate(itemTotal, weights, organizerIndex)
 
     for (let i = 0; i < n; i++) {
       if (claimedPerPerson[i] === 0) continue
-      personalMinor[i] += perPerson[i]
+      personalMinor[i] += split[i]
       lines[i].push({
         itemId: item.id,
         name: item.name,
         quantity: claimedPerPerson[i],
-        amountMinor: perPerson[i],
+        amountMinor: split[i],
       })
     }
 
-    const unclaimedQty = Math.max(0, item.quantity - claimedTotal)
     if (unclaimedQty > 0) {
       communal.push({
         itemId: item.id,
         name: item.name,
         quantity: unclaimedQty,
-        amountMinor: unclaimedQty * item.unitPriceMinor,
+        amountMinor: split[n],
         isShared: false,
       })
     }
@@ -285,7 +315,7 @@ function toCommunalLine(item: BillItem): CommunalLine {
     itemId: item.id,
     name: item.name,
     quantity: item.quantity,
-    amountMinor: item.unitPriceMinor * item.quantity,
+    amountMinor: itemTotalMinor(item),
     isShared: item.shared,
   }
 }

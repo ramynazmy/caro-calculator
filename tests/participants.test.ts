@@ -11,11 +11,11 @@ function eq(label: string, got: unknown, want: unknown) {
 
 const P = (id: string, name: string, partySize: number) => ({ id, name, partySize })
 const I = (id: string, price: number, qty: number, shared: boolean) =>
-  ({ id, name: id, unitPriceMinor: price, quantity: qty, shared })
+  ({ id, name: id, priceMinor: price, priceMode: 'unit' as const, quantity: qty, shared, sharedWith: null })
 
 function bill(over: Partial<Bill> = {}): Bill {
   return {
-    version: 4, id: 'b', title: '', currency: 'EGP', createdAt: 0,
+    version: 5, id: 'b', title: '', currency: 'EGP', createdAt: 0,
     items: [], taxAppliesToService: true, actualTotalMinor: null,
     chargeSplit: 'proportional', claims: {}, locked: false,
     respondedAt: {}, published: false,
@@ -63,10 +63,13 @@ const store = new Map<string, string>()
   removeItem: (k: string) => void store.delete(k),
 }
 
-// A bill saved by the Phase 1 build: version 1, no organizer, no splitBasis.
+// A bill exactly as the Phase 1 build wrote it: version 1, no organizer, no
+// splitBasis, and items carrying `unitPriceMinor` rather than today's
+// `priceMinor`/`priceMode`. Written out literally rather than via the current
+// factory — using today's shape here would test nothing.
 store.set('billsplitter.bill.v1', JSON.stringify({
   version: 1, id: 'old', title: 'Old bill', currency: 'EGP', createdAt: 1,
-  items: [I('koshari', 5000, 2, false)],
+  items: [{ id: 'koshari', name: 'Koshari', unitPriceMinor: 5000, quantity: 2, shared: false }],
   discount: { enabled: false, mode: 'percent', percent: 0, fixedMinor: 0 },
   service: { enabled: true, mode: 'percent', percent: 12, fixedMinor: 0 },
   tax: { enabled: true, mode: 'percent', percent: 14, fixedMinor: 0 },
@@ -76,9 +79,10 @@ const migrated = loadBill()
 eq('v1 bill survives upgrade', migrated?.title, 'Old bill')
 eq('v1 items preserved', migrated?.items.length, 1)
 eq('v1 service preserved', migrated?.service.percent, 12)
-eq('v1 migrated all the way to v4', migrated?.version, 4)
+eq('v1 migrated all the way to v5', migrated?.version, 5)
 eq('v3 fields defaulted', [migrated?.chargeSplit, migrated?.locked, migrated?.published], ['proportional', false, false])
 eq('v4 fields defaulted (tips off, no rounding)', [migrated?.tips.enabled, migrated?.roundUpTo], [false, 0])
+eq('v5: items relabelled without changing the numbers', [migrated?.items[0].priceMinor, migrated?.items[0].priceMode, migrated?.items[0].sharedWith], [5000, 'unit', null])
 eq('splitBasis defaulted', migrated?.splitBasis, 'perPerson')
 eq('organizerId defaulted', migrated?.organizerId, null)
 

@@ -7,6 +7,7 @@
  */
 import type { BillItem } from '../types'
 import { formatMoney } from '../lib/money'
+import { itemTotalMinor, unitPriceDisplayMinor } from '../lib/items'
 import { QuantityStepper } from './QuantityStepper'
 import { useI18n } from '../i18n'
 
@@ -38,7 +39,7 @@ export function ClaimRow({
       <div className="claim-row__main">
         <div className="claim-row__name">{item.name}</div>
         <div className="claim-row__meta">
-          {formatMoney(item.unitPriceMinor, currency, lang)} · {item.quantity}×
+          {formatMoney(unitPriceDisplayMinor(item), currency, lang)} · {item.quantity}×
           {' · '}
           <span className={available === 0 ? 'claim-row__left--none' : 'claim-row__left'}>
             {available === 0 ? t('assign.allClaimed') : t('assign.remaining', { n: available })}
@@ -49,7 +50,13 @@ export function ClaimRow({
       <div className="claim-row__side">
         {quantity > 0 && (
           <div className="claim-row__amount">
-            {formatMoney(item.unitPriceMinor * quantity, currency, lang)}
+            {formatMoney(
+              // Proportion of the line, so a line total that does not divide
+              // evenly still shows something sensible.
+              Math.round((itemTotalMinor(item) * quantity) / Math.max(1, item.quantity)),
+              currency,
+              lang,
+            )}
           </div>
         )}
         <QuantityStepper

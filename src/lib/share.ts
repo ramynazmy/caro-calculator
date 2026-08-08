@@ -29,7 +29,8 @@ export function buildSummaryText(
     lines.push(`${heading}: ${money(share.totalMinor)}`)
 
     for (const line of share.lines) {
-      lines.push(`  • ${line.quantity}× ${line.name}`)
+      const suffix = line.sharedWays ? ` (${t('summary.splitWays', { n: line.sharedWays })})` : ''
+      lines.push(`  • ${line.quantity}× ${line.name}${suffix}`)
     }
     if (share.communalMinor > 0) {
       lines.push(`  • ${t('summary.communalShare')}: ${money(share.communalMinor)}`)

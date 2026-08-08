@@ -65,9 +65,12 @@ async function buildSchema() {
         items: Schema.object({
           properties: {
             name: Schema.string({ description: 'The item name exactly as printed.' }),
-            unitPrice: Schema.number({
+            price: Schema.number({
+              description: 'The price figure printed against this line, copied verbatim.',
+            }),
+            priceIsLineTotal: Schema.boolean({
               description:
-                'Price of ONE unit. If the receipt shows a line total for several units, divide it.',
+                'True if that figure is the total for the whole line; false if it is the price of one unit.',
             }),
             quantity: Schema.integer({ description: 'How many were ordered. 1 if not shown.' }),
             confidence: Schema.number({
@@ -96,9 +99,12 @@ Extract every ordered line item, plus the charges at the bottom.
 Rules:
 - The receipt may be in Arabic, English, or both. Return item names in the
   language they are printed in. Do not translate.
-- unitPrice is the price of a SINGLE unit. Receipts often print the line total
-  for a quantity (e.g. "3 Tea  45.00" means unitPrice 15.00, quantity 3).
-  Divide when you are confident the printed figure is a line total.
+- Copy the price figure EXACTLY as printed. Never divide or multiply it.
+  Instead set priceIsLineTotal to say what it means:
+    "3 Tea   45.00"  -> price 45.00, quantity 3, priceIsLineTotal true
+    "Tea     15.00 x3" -> price 15.00, quantity 3, priceIsLineTotal false
+  If a receipt shows both a unit price and a line total, report the unit price
+  with priceIsLineTotal false. If you cannot tell, prefer the line total.
 - Do not invent items. If a line is illegible, leave it out and lower your
   confidence on the rest.
 - Do not include service, tax, VAT, discounts, tips or the total as items.

@@ -4,7 +4,7 @@ import type { Bill } from '../types'
 
 const BILL_STORAGE_KEY = 'billsplitter.bill.v1'
 
-const CURRENT_VERSION = 4
+const CURRENT_VERSION = 5
 
 /**
  * Bring an older saved bill up to the current schema, one step at a time.
@@ -46,6 +46,27 @@ function migrate(raw: unknown): Bill | null {
       version: 4,
       tips: { enabled: false, mode: 'percent', percent: 10, fixedMinor: 0 },
       roundUpTo: 0,
+    }
+  }
+
+  if (bill.version === 4) {
+    // v4 -> v5: an item's price can now be a line total rather than a unit
+    // price, and a shared item can be split between named people. Existing
+    // items were all unit-priced and shared with everyone, so the conversion
+    // is a straight relabel that changes no numbers.
+    const items = Array.isArray(bill.items) ? bill.items : []
+    bill = {
+      ...bill,
+      version: 5,
+      items: items.map((item: Record<string, unknown>) => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        shared: item.shared,
+        priceMinor: item.unitPriceMinor,
+        priceMode: 'unit',
+        sharedWith: null,
+      })),
     }
   }
 

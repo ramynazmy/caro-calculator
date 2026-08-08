@@ -15,6 +15,7 @@ import { isFirebaseConfigured, publishBill, saveClaims } from '../lib/firebase'
 import { claimUrl } from '../router'
 import { copyText, whatsappUrl } from '../lib/share'
 import { formatMoney } from '../lib/money'
+import { itemTotalMinor, unitPriceDisplayMinor } from '../lib/items'
 import { useI18n } from '../i18n'
 import { QuantityStepper } from '../components/QuantityStepper'
 
@@ -270,7 +271,7 @@ function AssignPanel() {
                 <span className="assign-item__title">
                   <span className="assign-item__name">{item.name}</span>
                   <span className="assign-item__meta">
-                    {item.quantity} × {formatMoney(item.unitPriceMinor, bill.currency, lang)}
+                    {item.quantity} × {formatMoney(unitPriceDisplayMinor(item), bill.currency, lang)}
                   </span>
                 </span>
                 <span
@@ -302,7 +303,13 @@ function AssignPanel() {
                         <span className="assign-person__name">{person.name}</span>
                         {mine > 0 && (
                           <span className="assign-person__amount">
-                            {formatMoney(item.unitPriceMinor * mine, bill.currency, lang)}
+                            {formatMoney(
+                              Math.round(
+                                (itemTotalMinor(item) * mine) / Math.max(1, item.quantity),
+                              ),
+                              bill.currency,
+                              lang,
+                            )}
                           </span>
                         )}
                         <QuantityStepper

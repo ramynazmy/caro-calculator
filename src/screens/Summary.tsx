@@ -104,6 +104,9 @@ export function Summary() {
                   <li key={line.itemId}>
                     <span>
                       {line.quantity}× {line.name}
+                      {line.sharedWays ? (
+                        <span className="chip">{t('summary.splitWays', { n: line.sharedWays })}</span>
+                      ) : null}
                     </span>
                     <span>{money(line.amountMinor)}</span>
                   </li>

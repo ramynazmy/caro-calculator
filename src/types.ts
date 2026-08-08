@@ -9,20 +9,47 @@
  * Field names carrying minor units end in `Minor` to make this obvious.
  */
 
+/**
+ * How the number on an item line should be read.
+ *
+ * Receipts are inconsistent: some print the price of one unit, others print
+ * the total for the whole line. `"3 Tea   45.00"` could mean either.
+ *
+ * We store whichever the organizer actually typed rather than converting,
+ * because converting loses money. `"3 Tea  100.00"` as a unit price is 33.33,
+ * and 33.33 × 3 is 99.99 — a piastre short, which would make the receipt
+ * cross-check complain about a bill that is perfectly correct.
+ */
+export type PriceMode = 'unit' | 'line'
+
 /** A single line on the printed bill. */
 export interface BillItem {
   id: string
   name: string
-  /** Price of ONE unit, in minor units. */
-  unitPriceMinor: number
-  /** How many were ordered. Whole numbers only — needed so Phase 3 can track
-   *  "3 of 4 claimed" without fractional bookkeeping. */
+  /**
+   * The figure printed on the receipt, in minor units. Whether it means one
+   * unit or the whole line is decided by `priceMode` — always read it through
+   * `itemTotalMinor()` rather than multiplying it yourself.
+   */
+  priceMinor: number
+  priceMode: PriceMode
+  /** How many were ordered. Whole numbers only, so claims stay countable. */
   quantity: number
   /**
-   * Shared by the whole table (bread, mezze, water). Shared items are not
-   * claimed by anyone individually; their cost is spread across the group.
+   * Split rather than claimed. Combined with `sharedWith`:
+   *
+   *   shared: false                  -> people claim it individually
+   *   shared: true,  sharedWith: null -> split across the whole table
+   *   shared: true,  sharedWith: [id] -> split only between those people
+   *
+   * The third case is the "we two split a pizza" one.
    */
   shared: boolean
+  /**
+   * Participant ids sharing this item, or `null` for the whole table.
+   * Only meaningful when `shared` is true.
+   */
+  sharedWith: string[] | null
 }
 
 /** How a tax / service / discount amount is expressed. */
@@ -85,7 +112,7 @@ export type Claims = Record<string, Record<string, number>>
 
 export interface Bill {
   /** Schema version, so old saved bills can be migrated instead of crashing. */
-  version: 4
+  version: 5
   /** Doubles as the Firestore document id, so it is also the share link. */
   id: string
   /** Optional label, e.g. "Sequoia, Friday". */

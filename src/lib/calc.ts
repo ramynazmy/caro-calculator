@@ -6,6 +6,7 @@
 import type { Bill, Charge } from '../types'
 import { percentOfMinor } from './money'
 import { getCurrency } from './currencies'
+import { itemTotalMinor } from './items'
 
 /** Resolve a charge to an amount in minor units, given the base it applies to. */
 function chargeAmount(charge: Charge, baseMinor: number): number {
@@ -50,10 +51,7 @@ export interface BillTotals {
  * when tax is entered as a percentage — a fixed tax amount is used verbatim.
  */
 export function computeTotals(bill: Bill): BillTotals {
-  const itemsSubtotalMinor = bill.items.reduce(
-    (sum, item) => sum + item.unitPriceMinor * item.quantity,
-    0,
-  )
+  const itemsSubtotalMinor = bill.items.reduce((sum, item) => sum + itemTotalMinor(item), 0)
 
   // A discount can never take the bill below zero.
   const discountMinor = Math.min(
@@ -114,7 +112,7 @@ export function totalHeadcount(bill: Bill): number {
 export function sharedItemsTotalMinor(bill: Bill): number {
   return bill.items
     .filter((item) => item.shared)
-    .reduce((sum, item) => sum + item.unitPriceMinor * item.quantity, 0)
+    .reduce((sum, item) => sum + itemTotalMinor(item), 0)
 }
 
 /**
@@ -143,10 +141,7 @@ export function sharesFor(bill: Bill, participantId: string): number {
 export function serviceToMatchActual(bill: Bill): number | null {
   if (bill.actualTotalMinor === null) return null
 
-  const itemsSubtotalMinor = bill.items.reduce(
-    (sum, item) => sum + item.unitPriceMinor * item.quantity,
-    0,
-  )
+  const itemsSubtotalMinor = bill.items.reduce((sum, item) => sum + itemTotalMinor(item), 0)
   const discountMinor = Math.min(
     chargeAmount(bill.discount, itemsSubtotalMinor),
     itemsSubtotalMinor,

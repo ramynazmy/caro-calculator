@@ -11,7 +11,7 @@ function eq(label: string, got: unknown, want: unknown) {
 
 function bill(over: Partial<Bill> = {}): Bill {
   return {
-    version: 4, id: 'x', title: '', currency: 'EGP', createdAt: 0,
+    version: 5, id: 'x', title: '', currency: 'EGP', createdAt: 0,
     items: [], participants: [], actualTotalMinor: null, taxAppliesToService: true,
     organizerId: null, splitBasis: 'perPerson', chargeSplit: 'proportional',
     claims: {}, locked: false, respondedAt: {}, published: false,
@@ -23,7 +23,7 @@ function bill(over: Partial<Bill> = {}): Bill {
   }
 }
 const item = (price: number, qty = 1) =>
-  ({ id: Math.random().toString(36).slice(2), name: 'x', unitPriceMinor: price, quantity: qty, shared: false })
+  ({ id: Math.random().toString(36).slice(2), name: 'x', priceMinor: price, priceMode: 'unit' as const, quantity: qty, shared: false, sharedWith: null })
 
 // --- parsing ---------------------------------------------------------------
 eq('parse "12.50" EGP', parseToMinor('12.50', 'EGP'), 1250)

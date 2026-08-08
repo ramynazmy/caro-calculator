@@ -25,7 +25,7 @@ function emptyCharge(defaultPercent: number): Charge {
 
 export function createEmptyBill(): Bill {
   return {
-    version: 4,
+    version: 5,
     id: newBillId(),
     title: '',
     currency: DEFAULT_CURRENCY,
@@ -97,7 +97,7 @@ function rescaleAmounts(bill: Bill, nextCurrency: string): Bill {
   return {
     ...bill,
     currency: nextCurrency,
-    items: bill.items.map((item) => ({ ...item, unitPriceMinor: conv(item.unitPriceMinor) })),
+    items: bill.items.map((item) => ({ ...item, priceMinor: conv(item.priceMinor) })),
     discount: { ...bill.discount, fixedMinor: conv(bill.discount.fixedMinor) },
     service: { ...bill.service, fixedMinor: conv(bill.service.fixedMinor) },
     tax: { ...bill.tax, fixedMinor: conv(bill.tax.fixedMinor) },
@@ -176,6 +176,13 @@ function reducer(bill: Bill, action: Action): Bill {
       return {
         ...bill,
         participants,
+        // Drop them from any "split between these people" item, so the group
+        // shrinks to whoever is left rather than pointing at a ghost.
+        items: bill.items.map((item) =>
+          item.sharedWith?.includes(action.id)
+            ? { ...item, sharedWith: item.sharedWith.filter((id) => id !== action.id) }
+            : item,
+        ),
         // Their claims go back into the pool rather than haunting the maths.
         claims,
         respondedAt,

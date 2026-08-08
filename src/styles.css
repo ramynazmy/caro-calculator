@@ -1480,3 +1480,30 @@ select.input {
   color: var(--text);
   font-weight: 700;
 }
+
+/* Pick which people are splitting an item. */
+.pill-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  min-height: 38px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pill.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}

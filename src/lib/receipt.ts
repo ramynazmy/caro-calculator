@@ -11,13 +11,17 @@
 
 import type { BillItem, Charge } from '../types'
 import { getCurrency, CURRENCIES } from './currencies'
+import { itemTotalMinor } from './items'
 import { newId } from './id'
 
 /** The shape we ask the model for. Every field is optional in practice. */
 export interface ScannedReceipt {
   items?: Array<{
     name?: unknown
-    unitPrice?: unknown
+    /** The figure printed against this line, verbatim. */
+    price?: unknown
+    /** True when that figure is the total for the line, not the price of one. */
+    priceIsLineTotal?: unknown
     quantity?: unknown
     confidence?: unknown
   }>
@@ -154,7 +158,7 @@ export function mapScannedReceipt(raw: unknown, currency: string): ReceiptDraft 
 
   for (const row of rows) {
     const name = typeof row?.name === 'string' ? row.name.trim() : ''
-    const price = money(row?.unitPrice)
+    const price = money(row?.price)
     // A line with no name, or no readable price, is not recoverable — better
     // to drop it and say so than to add a blank row the organizer must hunt for.
     if (!name || price === null) {
@@ -164,9 +168,14 @@ export function mapScannedReceipt(raw: unknown, currency: string): ReceiptDraft 
     items.push({
       id: newId(),
       name: name.slice(0, 80),
-      unitPriceMinor: toMinor(price, currency),
+      priceMinor: toMinor(price, currency),
+      // Reading the printed figure as-is, rather than asking the model to
+      // divide, is both more reliable and lossless: 100.00 across 3 teas stays
+      // exactly 100.00 instead of becoming 3 x 33.33.
+      priceMode: row?.priceIsLineTotal === true ? 'line' : 'unit',
       quantity: quantity(row?.quantity),
       shared: false,
+      sharedWith: null,
       confidence: confidence(row?.confidence),
     })
   }
@@ -190,5 +199,5 @@ export function mapScannedReceipt(raw: unknown, currency: string): ReceiptDraft 
 
 /** Sum of the draft's own line items, for showing against the printed total. */
 export function draftItemsTotalMinor(draft: ReceiptDraft): number {
-  return draft.items.reduce((sum, item) => sum + item.unitPriceMinor * item.quantity, 0)
+  return draft.items.reduce((sum, item) => sum + itemTotalMinor(item), 0)
 }

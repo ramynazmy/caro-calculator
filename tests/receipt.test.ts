@@ -23,8 +23,8 @@ const map = (raw: unknown, currency = 'EGP') => mapScannedReceipt(raw, currency)
 console.log('--- a clean read ---')
 const good = map({
   items: [
-    { name: 'Chicken shawarma', unitPrice: 120.5, quantity: 2, confidence: 0.97 },
-    { name: 'شاي', unitPrice: 15, quantity: 3, confidence: 0.9 },
+    { name: 'Chicken shawarma', price: 120.5, quantity: 2, confidence: 0.97 },
+    { name: 'شاي', price: 15, quantity: 3, confidence: 0.9 },
   ],
   servicePercent: 12,
   taxPercent: 14,
@@ -32,7 +32,7 @@ const good = map({
   currencyCode: 'EGP',
 })
 eq('two items kept', good.items.length, 2)
-eq('price -> integer piastres', good.items[0].unitPriceMinor, 12050)
+eq('price -> integer piastres', good.items[0].priceMinor, 12050)
 eq('quantity preserved', good.items[0].quantity, 2)
 eq('Arabic name kept verbatim', good.items[1].name, 'شاي')
 eq('nothing dropped', good.droppedItems, 0)
@@ -63,60 +63,60 @@ for (const [label, input] of [
 console.log('\n--- individual bad rows ---')
 const messy = map({
   items: [
-    { name: 'Good', unitPrice: 10, quantity: 1, confidence: 1 },
-    { name: '', unitPrice: 10 },                       // no name
-    { name: '   ', unitPrice: 10 },                    // whitespace name
+    { name: 'Good', price: 10, quantity: 1, confidence: 1 },
+    { name: '', price: 10 },                       // no name
+    { name: '   ', price: 10 },                    // whitespace name
     { name: 'No price' },                              // no price
-    { name: 'Null price', unitPrice: null },
-    { name: 'Text price', unitPrice: 'free' },
-    { name: 'Negative', unitPrice: -50 },
-    { name: 'Absurd', unitPrice: 99_999_999 },         // misread barcode/phone
-    { name: 'NaN', unitPrice: Number.NaN },
-    { name: 'Infinite', unitPrice: Number.POSITIVE_INFINITY },
+    { name: 'Null price', price: null },
+    { name: 'Text price', price: 'free' },
+    { name: 'Negative', price: -50 },
+    { name: 'Absurd', price: 99_999_999 },         // misread barcode/phone
+    { name: 'NaN', price: Number.NaN },
+    { name: 'Infinite', price: Number.POSITIVE_INFINITY },
     null,
     'not an object',
   ],
 })
 eq('only the good row survives', messy.items.length, 1)
 eq('and the rest are counted', messy.droppedItems, 11)
-eq('survivor is intact', [messy.items[0].name, messy.items[0].unitPriceMinor], ['Good', 1000])
+eq('survivor is intact', [messy.items[0].name, messy.items[0].priceMinor], ['Good', 1000])
 
 // ============================ coercion ====================================
 console.log('\n--- values that need cleaning up ---')
 const coerced = map({
   items: [
-    { name: '  Spaced  ', unitPrice: '12.50', quantity: '3' },
-    { name: 'Symbols', unitPrice: '1,234.50 EGP', quantity: 1 },
-    { name: 'Zero qty', unitPrice: 10, quantity: 0 },
-    { name: 'Negative qty', unitPrice: 10, quantity: -5 },
-    { name: 'Fractional qty', unitPrice: 10, quantity: 2.6 },
-    { name: 'Silly qty', unitPrice: 10, quantity: 100000 },
-    { name: 'Free item', unitPrice: 0, quantity: 1 },
+    { name: '  Spaced  ', price: '12.50', quantity: '3' },
+    { name: 'Symbols', price: '1,234.50 EGP', quantity: 1 },
+    { name: 'Zero qty', price: 10, quantity: 0 },
+    { name: 'Negative qty', price: 10, quantity: -5 },
+    { name: 'Fractional qty', price: 10, quantity: 2.6 },
+    { name: 'Silly qty', price: 10, quantity: 100000 },
+    { name: 'Free item', price: 0, quantity: 1 },
   ],
 })
 eq('name trimmed', coerced.items[0].name, 'Spaced')
-eq('numeric string price', coerced.items[0].unitPriceMinor, 1250)
+eq('numeric string price', coerced.items[0].priceMinor, 1250)
 eq('numeric string quantity', coerced.items[0].quantity, 3)
-eq('price with symbols and separators', coerced.items[1].unitPriceMinor, 123450)
+eq('price with symbols and separators', coerced.items[1].priceMinor, 123450)
 eq('quantity 0 -> 1', coerced.items[2].quantity, 1)
 eq('negative quantity -> 1', coerced.items[3].quantity, 1)
 eq('fractional quantity rounded', coerced.items[4].quantity, 3)
 eq('absurd quantity -> 1', coerced.items[5].quantity, 1)
-eq('a genuinely free item is kept', coerced.items[6].unitPriceMinor, 0)
+eq('a genuinely free item is kept', coerced.items[6].priceMinor, 0)
 
 const conf = map({
   items: [
-    { name: 'A', unitPrice: 1, confidence: 0.3 },
-    { name: 'B', unitPrice: 1, confidence: 5 },
-    { name: 'C', unitPrice: 1, confidence: -2 },
-    { name: 'D', unitPrice: 1 },
-    { name: 'E', unitPrice: 1, confidence: 'high' },
+    { name: 'A', price: 1, confidence: 0.3 },
+    { name: 'B', price: 1, confidence: 5 },
+    { name: 'C', price: 1, confidence: -2 },
+    { name: 'D', price: 1 },
+    { name: 'E', price: 1, confidence: 'high' },
   ],
 })
 eq('confidence clamped to 0..1', conf.items.map((i) => i.confidence), [0.3, 1, 0, 0.5, 0.5])
 
 // A very long name would break the layout; it is capped, not dropped.
-const long = map({ items: [{ name: 'x'.repeat(500), unitPrice: 1 }] })
+const long = map({ items: [{ name: 'x'.repeat(500), price: 1 }] })
 ok('absurdly long name capped', long.items[0].name.length <= 80)
 
 // ============================ charges =====================================
@@ -141,13 +141,13 @@ eq('lowercase code accepted', map({ items: [], currencyCode: 'usd' }).currency, 
 eq('missing code -> null', map({ items: [] }).currency, null)
 eq('non-string code -> null', map({ items: [], currencyCode: 42 }).currency, null)
 // KWD has three decimal places, so the same figure is a different integer.
-eq('12.5 in EGP', map({ items: [{ name: 'x', unitPrice: 12.5 }] }, 'EGP').items[0].unitPriceMinor, 1250)
-eq('12.5 in KWD', map({ items: [{ name: 'x', unitPrice: 12.5 }] }, 'KWD').items[0].unitPriceMinor, 12500)
+eq('12.5 in EGP', map({ items: [{ name: 'x', price: 12.5 }] }, 'EGP').items[0].priceMinor, 1250)
+eq('12.5 in KWD', map({ items: [{ name: 'x', price: 12.5 }] }, 'KWD').items[0].priceMinor, 12500)
 
 // ============================ scale =======================================
 console.log('\n--- absurdly long output ---')
 const huge = map({
-  items: Array.from({ length: 500 }, (_, i) => ({ name: `Item ${i}`, unitPrice: 10 })),
+  items: Array.from({ length: 500 }, (_, i) => ({ name: `Item ${i}`, price: 10 })),
 })
 eq('capped at 200 rows', huge.items.length, 200)
 eq('the overflow is reported, not hidden', huge.droppedItems, 300)
@@ -170,7 +170,7 @@ let bad = 0
 for (let i = 0; i < 3000; i++) {
   const draft = map({
     items: Array.from({ length: Math.floor(rnd() * 6) }, () => ({
-      name: junk(), unitPrice: junk(), quantity: junk(), confidence: junk(),
+      name: junk(), price: junk(), quantity: junk(), confidence: junk(),
     })),
     serviceAmount: junk(), servicePercent: junk(),
     taxAmount: junk(), taxPercent: junk(),
@@ -179,7 +179,7 @@ for (let i = 0; i < 3000; i++) {
   for (const item of draft.items) {
     if (
       typeof item.name !== 'string' || item.name.length === 0 ||
-      !Number.isInteger(item.unitPriceMinor) || item.unitPriceMinor < 0 ||
+      !Number.isInteger(item.priceMinor) || item.priceMinor < 0 ||
       !Number.isInteger(item.quantity) || item.quantity < 1 ||
       item.confidence < 0 || item.confidence > 1
     ) bad++

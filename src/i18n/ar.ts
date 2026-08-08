@@ -31,6 +31,22 @@ export const ar: Dict = {
   'items.edit': 'تعديل',
   'items.delete': 'حذف',
   'items.deleteConfirm': 'حذف «{name}»؟',
+  'items.priceMode': 'ماذا يعني السعر؟',
+  'items.priceUnit': 'سعر الواحد',
+  'items.priceLine': 'إجمالي السطر',
+  'items.lineTotal': 'إجمالي السطر',
+  'items.fromLineTotal': 'محسوب من إجمالي السطر',
+  'items.sharingLabel': 'كيف يُقسّم؟',
+  'items.sharingClaim': 'يختاره أحد',
+  'items.sharingClaimHint': 'يختاره الناس بأنفسهم، أو توزّعه أنت.',
+  'items.sharingEveryone': 'الجميع',
+  'items.sharingEveryoneHint': 'يُقسّم على الطاولة كلها — العيش والمياه والمقبلات.',
+  'items.sharingGroup': 'مقسوم بين',
+  'items.sharingGroupHint': 'يُقسّم بالتساوي بين من تختارهم فقط.',
+  'items.sharingNeedPeople': 'أضف المشاركين من تبويب المشاركين أولاً.',
+  'items.sharingPickSomeone': 'اختر شخصاً واحداً على الأقل.',
+  'items.splitBadge': 'مقسوم على {n}',
+  'summary.splitWays': 'مقسوم على {n}',
   'items.each': 'للوحدة',
 
   'charges.heading': 'الخصم والخدمة والضريبة',
@@ -176,16 +192,16 @@ export const ar: Dict = {
   'summary.lockedNote': 'مقفلة. لم يعد بإمكان المشاركين تغيير اختياراتهم.',
 
   // --- توزيع الضريبة والخدمة -------------------------------------------------
-  'chargeSplit.heading': 'توزيع الضريبة والخدمة',
+  'chargeSplit.heading': 'توزيع الضريبة والخدمة والبقشيش',
   'chargeSplit.proportional': 'حسب ما أكلت',
   'chargeSplit.equal': 'بالتساوي',
   'chargeSplit.proportionalHint': 'من أكل ضعف غيره يدفع ضعف الضريبة والخدمة.',
   'chargeSplit.equalHint': 'الضريبة والخدمة تُقسَّم بالتساوي، بنفس طريقة الأصناف المشتركة.',
 
-  'charges.tips': 'البقشيش',
+  'charges.tips': 'البقشيش / التوصيل',
   'charges.tipsHint': 'فوق الفاتورة المطبوعة. النسبة تُحسب على الطعام بعد الخصم.',
 
-  'totals.tips': 'البقشيش',
+  'totals.tips': 'البقشيش / التوصيل',
   'totals.payable': 'المبلغ المطلوب دفعه',
 
   'roundup.heading': 'تقريب نصيب كل شخص لأعلى',
@@ -196,9 +212,9 @@ export const ar: Dict = {
   'roundup.collected': 'التقريب يضيف {amount} للبقشيش.',
 
   'summary.roundUp': 'تقريب',
-  'summary.tipShare': 'بقشيش',
+  'summary.tipShare': 'بقشيش / توصيل',
   'summary.billTotal': 'الفاتورة',
-  'summary.tipsTotal': 'البقشيش (مع التقريب)',
+  'summary.tipsTotal': 'البقشيش / التوصيل (مع التقريب)',
   'summary.matchesWithTip': 'الفاتورة مغطّاة تماماً، زائد {amount} بقشيش.',
 
   'install.button': 'ثبّت التطبيق',

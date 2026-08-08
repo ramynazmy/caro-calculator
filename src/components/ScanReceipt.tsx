@@ -75,9 +75,11 @@ export function ScanReceipt() {
         type: 'addItem',
         item: {
           name: item.name,
-          unitPriceMinor: item.unitPriceMinor,
+          priceMinor: item.priceMinor,
+          priceMode: item.priceMode,
           quantity: item.quantity,
           shared: item.shared,
+          sharedWith: item.sharedWith,
         },
       })
     }
@@ -306,11 +308,11 @@ function ReviewPanel({
               <input
                 className="input scan-row__price"
                 inputMode="decimal"
-                aria-label={t('items.unitPrice')}
-                defaultValue={minorToInputString(item.unitPriceMinor, currency)}
+                aria-label={item.priceMode === 'line' ? t('items.lineTotal') : t('items.unitPrice')}
+                defaultValue={minorToInputString(item.priceMinor, currency)}
                 onChange={(e) => {
                   const parsed = parseToMinor(e.target.value, currency)
-                  if (parsed !== null) update(item.id, { unitPriceMinor: parsed })
+                  if (parsed !== null) update(item.id, { priceMinor: parsed })
                 }}
               />
               <QuantityStepper
